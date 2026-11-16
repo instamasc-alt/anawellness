@@ -1,0 +1,116 @@
+import { useMemo, useState } from 'react'
+import { PATTERN_ORDER, exercises } from '../data'
+import { FILTERS, listWorkouts, todayCode } from '../engine'
+import { IconBell, IconHeart, Pose } from '../components/Icons'
+
+export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleFav, onBell }) {
+  const [filter, setFilter] = useState('Tudo')
+  const [query, setQuery] = useState('')
+  const today = todayCode(data)
+  const needle = query.trim().toLowerCase()
+  const filters = data.favorites.length ? [...FILTERS, 'Salvos'] : FILTERS
+
+  const workouts = useMemo(() => {
+    return listWorkouts(data).filter((workout) => {
+      if (filter === 'Salvos') return data.favorites.includes(`w:${workout.id}`)
+      if (filter !== 'Tudo' && workout.filter !== filter) return false
+      if (!needle) return true
+      return `${workout.title} ${workout.summary} ${workout.focus}`.toLowerCase().includes(needle)
+    })
+  }, [data, filter, needle])
+
+  const groups = useMemo(() => {
+    const all = Object.values(exercises).filter((exercise) => {
+      if (filter === 'Salvos') return data.favorites.includes(`e:${exercise.id}`)
+      if (filter === 'Força') return exercise.pattern === 'Empurrar' || exercise.pattern === 'Puxar'
+      if (filter === 'Motor') return exercise.pattern === 'Pernas' || exercise.pattern === 'Motor'
+      if (filter === 'Mobilidade') return exercise.pattern === 'Preparação' || exercise.pattern === 'Recuperação'
+      if (filter === 'Prova') return false
+      if (!needle) return true
+      return `${exercise.name} ${exercise.pattern} ${exercise.muscles.join(' ')} ${exercise.equipment}`
+        .toLowerCase()
+        .includes(needle)
+    })
+    return PATTERN_ORDER.map((pattern) => ({
+      pattern,
+      items: all.filter((exercise) => exercise.pattern === pattern),
+    })).filter((group) => group.items.length)
+  }, [data.favorites, filter, needle])
+
+  return (
+    <section className="screen">
+      <header className="spread">
+        <div>
+          <p className="tiny">Biblioteca</p>
+          <h1>Treinos</h1>
+        </div>
+        <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
+          <IconBell />
+          {data.coachUnread > 0 ? <i className="dot" /> : null}
+        </button>
+      </header>
+      <p className="sub tight">Sessões desenhadas para casa. O movimento certo muda com o seu nível.</p>
+      <input
+        className="field"
+        value={query}
+        placeholder="Buscar sessão ou movimento"
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      <div className="pills">
+        {filters.map((item) => (
+          <button key={item} type="button" className={filter === item ? 'pill on' : 'pill'} onClick={() => setFilter(item)}>
+            {item}
+          </button>
+        ))}
+      </div>
+
+      <div className="stack">
+        {workouts.map((workout) => (
+          <article key={workout.id} className="work">
+            <button type="button" className="work-hit" onClick={() => onOpenWorkout(workout)}>
+              <div className="work-art">
+                <Pose name={workout.art} />
+              </div>
+              <div className="work-copy">
+                <div className="spread">
+                  <b>{workout.title}</b>
+                  {workout.id === today ? <span className="badge">Hoje</span> : null}
+                </div>
+                <span>{workout.summary}</span>
+                <small>
+                  {workout.minutes} min · {workout.levelName}
+                </small>
+              </div>
+            </button>
+            <button
+              type="button"
+              className={data.favorites.includes(`w:${workout.id}`) ? 'heart on' : 'heart'}
+              aria-label="Salvar sessão"
+              onClick={() => onToggleFav(`w:${workout.id}`)}
+            >
+              <IconHeart on={data.favorites.includes(`w:${workout.id}`)} />
+            </button>
+          </article>
+        ))}
+        {workouts.length === 0 ? <p className="fine">Nenhuma sessão com esse filtro.</p> : null}
+      </div>
+
+      {groups.map((group) => (
+        <section key={group.pattern} className="stack">
+          <h3>{group.pattern}</h3>
+          {group.items.map((exercise) => (
+            <button key={exercise.id} type="button" className="move" onClick={() => onOpenExercise(exercise.id)}>
+              <div>
+                <b>{exercise.name}</b>
+                <span>
+                  {exercise.equipment} · {exercise.muscles.slice(0, 2).join(', ')}
+                </span>
+              </div>
+              <span className="chev">›</span>
+            </button>
+          ))}
+        </section>
+      ))}
+    </section>
+  )
+}
