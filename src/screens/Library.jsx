@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { PATTERN_ORDER, exercises } from '../data'
 import { FILTERS, listWorkouts, todayCode } from '../engine'
-import { IconBell, IconHeart, Pose } from '../components/Icons'
+import { IconBell, IconHeart } from '../components/Icons'
+import { workoutPhoto, patternPhoto } from '../media'
 
 export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleFav, onBell }) {
   const [filter, setFilter] = useState('Tudo')
@@ -69,7 +70,7 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
           <article key={workout.id} className="work">
             <button type="button" className="work-hit" onClick={() => onOpenWorkout(workout)}>
               <div className="work-art">
-                <Pose name={workout.art} />
+                <img src={workoutPhoto(data.gender, workout.id)} alt="" />
               </div>
               <div className="work-copy">
                 <div className="spread">
@@ -100,6 +101,7 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
           <h3>{group.pattern}</h3>
           {group.items.map((exercise) => (
             <button key={exercise.id} type="button" className="move" onClick={() => onOpenExercise(exercise.id)}>
+              <img className="move-thumb" src={patternPhoto(data.gender, exercise.pattern)} alt="" />
               <div>
                 <b>{exercise.name}</b>
                 <span>

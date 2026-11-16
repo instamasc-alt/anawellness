@@ -254,13 +254,24 @@ p { line-height: 1.45; }
 }
 .phase-copy { flex: 1; }
 .thumb, .work-art, .hero {
-  background:
-    radial-gradient(80px 50px at 70% 20%, rgba(214, 255, 74, 0.22), transparent 70%),
-    #101612;
+  background: #101612;
   color: var(--accent);
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
+.work-art { min-height: 132px; position: relative; }
+.work-art img,
+.hero img,
+.hero video,
+.move-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.work-art img { position: absolute; inset: 0; }
+.move-thumb { width: 56px; height: 64px; border-radius: 12px; flex: none; }
 .thumb { width: 64px; height: 64px; border-radius: 16px; flex: none; }
 .tick {
   width: 28px;
@@ -310,7 +321,6 @@ p { line-height: 1.45; }
   text-align: left;
   padding: 0;
 }
-.work-art { min-height: 118px; }
 .work-copy { padding: 12px 44px 12px 12px; display: grid; gap: 4px; align-content: center; }
 .work-copy span, .work-copy small { color: var(--muted); font-size: 13px; }
 .heart { position: absolute; top: 8px; right: 8px; background: rgba(8, 10, 9, 0.72); }

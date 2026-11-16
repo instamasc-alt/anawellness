@@ -5,7 +5,7 @@ import Coach from './screens/Coach'
 import Exercise from './screens/Exercise'
 import Home from './screens/Home'
 import Library from './screens/Library'
-import Onboarding from './screens/Onboarding'
+import Onboarding, { GenderGate } from './screens/Onboarding'
 import Plan from './screens/Plan'
 import Profile from './screens/Profile'
 import Session from './screens/Session'
@@ -68,6 +68,18 @@ export default function App() {
     )
   }
 
+  if (!data.gender) {
+    return (
+      <div className="stage">
+        <div className="app">
+          <main className="main">
+            <GenderGate onPick={(gender) => setData({ ...data, gender })} />
+          </main>
+        </div>
+      </div>
+    )
+  }
+
   const session = overlay?.type === 'session'
   const freeze = tab === 'coach' && !overlay
 
@@ -101,6 +113,7 @@ export default function App() {
           {overlay?.type === 'exercise' ? (
             <Exercise
               id={overlay.id}
+              gender={data.gender}
               favorite={data.favorites.includes(`e:${overlay.id}`)}
               onBack={() => setOverlay(null)}
               onOpen={(id) => setOverlay({ type: 'exercise', id })}

@@ -8,6 +8,12 @@ const STEPS = [
     text: 'O plano começa no seu ponto, não num exercício de internet.',
   },
   {
+    key: 'gender',
+    kicker: 'Cadastro',
+    title: 'Quem aparece nos treinos?',
+    text: 'A biblioteca usa fotos e a demonstração do seu grupo. Dá para trocar depois no perfil.',
+  },
+  {
     key: 'start',
     kicker: 'Ponto de partida',
     title: 'De onde você parte?',
@@ -38,6 +44,11 @@ const DAYS = [
   [4, '4 dias', 'Três de força e um de mobilidade.'],
 ]
 
+const GENDERS = [
+  ['m', 'Masculino', 'Fotos e vídeo de homens na execução.'],
+  ['f', 'Feminino', 'Fotos de mulheres na execução.'],
+]
+
 const PULLS = [
   ['porta', 'Porta firme', 'Toalha na maçaneta. A puxada de quem não tem barra.'],
   ['barra', 'Barra', 'Suspensão, negativa e barra estrita.'],
@@ -46,17 +57,18 @@ const PULLS = [
 
 export default function Onboarding({ onDone }) {
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState({ name: '', start: '', days: 0, pull: '' })
+  const [answers, setAnswers] = useState({ name: '', gender: '', start: '', days: 0, pull: '' })
   const current = STEPS[step]
   const ready =
-    (step === 0) ||
-    (step === 1 && answers.start) ||
-    (step === 2 && answers.days) ||
-    (step === 3 && answers.pull)
+    step === 0 ||
+    (step === 1 && answers.gender) ||
+    (step === 2 && answers.start) ||
+    (step === 3 && answers.days) ||
+    (step === 4 && answers.pull)
 
   function next() {
     if (!ready) return
-    if (step < 3) setStep(step + 1)
+    if (step < 4) setStep(step + 1)
     else onDone(answers)
   }
 
@@ -84,9 +96,10 @@ export default function Onboarding({ onDone }) {
         </label>
       ) : null}
 
-      {step === 1 ? <Choices options={STARTS} value={answers.start} onPick={(start) => setAnswers({ ...answers, start })} /> : null}
-      {step === 2 ? <Choices options={DAYS} value={answers.days} onPick={(days) => setAnswers({ ...answers, days })} /> : null}
-      {step === 3 ? (
+      {step === 1 ? <Choices options={GENDERS} value={answers.gender} onPick={(gender) => setAnswers({ ...answers, gender })} /> : null}
+      {step === 2 ? <Choices options={STARTS} value={answers.start} onPick={(start) => setAnswers({ ...answers, start })} /> : null}
+      {step === 3 ? <Choices options={DAYS} value={answers.days} onPick={(days) => setAnswers({ ...answers, days })} /> : null}
+      {step === 4 ? (
         <>
           <Choices options={PULLS} value={answers.pull} onPick={(pull) => setAnswers({ ...answers, pull })} />
           <p className="fine">Porta travada, abrindo para o lado oposto, com um calço no pé. Se a maçaneta mexer, pare.</p>
@@ -100,9 +113,21 @@ export default function Onboarding({ onDone }) {
           </button>
         ) : null}
         <button type="button" className="btn" disabled={!ready} onClick={next}>
-          {step === 3 ? 'Montar meu plano' : 'Continuar'}
+          {step === 4 ? 'Montar meu plano' : 'Continuar'}
         </button>
       </div>
+    </section>
+  )
+}
+
+export function GenderGate({ onPick }) {
+  return (
+    <section className="screen onboard">
+      <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+      <p className="tiny">Cadastro</p>
+      <h1>Quem aparece nos treinos?</h1>
+      <p className="sub">A biblioteca troca as fotos conforme esta escolha. O plano que você já começou continua.</p>
+      <Choices options={GENDERS} value="" onPick={onPick} />
     </section>
   )
 }

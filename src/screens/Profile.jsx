@@ -37,6 +37,20 @@ export default function Profile({ data, onChange, onReset }) {
       </div>
 
       <section className="panel">
+        <h3>Fotos da biblioteca</h3>
+        <div className="pills">
+          {[
+            ['m', 'Masculino'],
+            ['f', 'Feminino'],
+          ].map(([id, label]) => (
+            <button key={id} type="button" className={data.gender === id ? 'pill on' : 'pill'} onClick={() => onChange({ gender: id })}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel">
         <h3>Padrão desta fase</h3>
         <ul className="standards">
           {marks.map(([name, target]) => (

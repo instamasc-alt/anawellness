@@ -1,20 +1,12 @@
 import { useState } from 'react'
 import { PATTERN_BLURB, exercises } from '../data'
 import { easierThan, harderThan } from '../engine'
-import { IconBack, IconHeart, Pose } from '../components/Icons'
+import { patternPhoto, patternVideo } from '../media'
+import { IconBack, IconHeart } from '../components/Icons'
 
 const TABS = ['Como fazer', 'Músculos', 'Ajustes']
-const ART = {
-  Empurrar: 'push',
-  Puxar: 'pull',
-  Pernas: 'legs',
-  Core: 'core',
-  Motor: 'full',
-  Preparação: 'move',
-  Recuperação: 'move',
-}
 
-export default function Exercise({ id, favorite, onBack, onStart, onToggleFav, onOpen }) {
+export default function Exercise({ id, gender, favorite, onBack, onStart, onToggleFav, onOpen }) {
   const [tab, setTab] = useState('Como fazer')
   const exercise = exercises[id]
   const easier = easierThan(id)
@@ -37,7 +29,17 @@ export default function Exercise({ id, favorite, onBack, onStart, onToggleFav, o
         </button>
       </header>
       <div className="hero">
-        <Pose name={ART[exercise.pattern] || 'full'} />
+        {patternVideo(gender, exercise.pattern) ? (
+          <video
+            src={patternVideo(gender, exercise.pattern)}
+            poster={patternPhoto(gender, exercise.pattern)}
+            controls
+            playsInline
+            preload="metadata"
+          />
+        ) : (
+          <img src={patternPhoto(gender, exercise.pattern)} alt="" />
+        )}
       </div>
       <p className="tiny">{exercise.pattern}</p>
       <div className="spread">
