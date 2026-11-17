@@ -45,6 +45,12 @@ export const IconPlan = () => (
     <path d="M8 3.5V7M16 3.5V7M4 10h16" />
   </Svg>
 )
+export const IconChart = () => (
+  <Svg>
+    <path d="M4 19h16" />
+    <path d="M7 16V10M12 16V5M17 16v-6" />
+  </Svg>
+)
 export const IconUser = () => (
   <Svg>
     <circle cx="12" cy="8" r="3.2" />

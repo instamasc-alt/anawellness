@@ -1,10 +1,11 @@
-import { IconHome, IconTrain, IconCoach, IconPlan, IconUser } from './Icons'
+import { IconHome, IconTrain, IconCoach, IconPlan, IconChart, IconUser } from './Icons'
 
 const TABS = [
   ['home', 'Início', IconHome],
   ['train', 'Treino', IconTrain],
   ['coach', 'Coach', IconCoach],
   ['plan', 'Plano', IconPlan],
+  ['evolution', 'Evolução', IconChart],
   ['profile', 'Perfil', IconUser],
 ]
 

@@ -835,3 +835,97 @@ export function showDate(key) {
   const [, month, day] = key.split('-')
   return `${day}/${month}`
 }
+
+function dayFromKey(key) {
+  return new Date(`${key}T12:00:00`)
+}
+
+function mondayOf(date) {
+  const start = new Date(date)
+  const weekday = (date.getDay() + 6) % 7
+  start.setDate(date.getDate() - weekday)
+  return start
+}
+
+function inEvolutionRange(date, range, today) {
+  if (!date || range === 'tudo') return true
+  const day = dayFromKey(date)
+  const now = dayFromKey(today)
+  if (range === 'mes') return day.getFullYear() === now.getFullYear() && day.getMonth() === now.getMonth()
+  const start = mondayOf(now)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  return day >= start && day <= end
+}
+
+function weekStamp(date) {
+  return todayKey(mondayOf(dayFromKey(date)))
+}
+
+function barsFor(range, items, today) {
+  const counts = new Map()
+  for (const item of items) counts.set(item.date, (counts.get(item.date) || 0) + 1)
+  const now = dayFromKey(today)
+  if (range === 'semana') {
+    const start = mondayOf(now)
+    const labels = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
+    return labels.map((label, index) => {
+      const day = new Date(start)
+      day.setDate(start.getDate() + index)
+      return { label, count: counts.get(todayKey(day)) || 0 }
+    })
+  }
+  if (range === 'mes') {
+    const cursor = new Date(now.getFullYear(), now.getMonth(), 1, 12)
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0, 12)
+    const bars = []
+    let index = 1
+    while (cursor <= last) {
+      const end = new Date(cursor)
+      end.setDate(cursor.getDate() + 6)
+      if (end > last) end.setTime(last.getTime())
+      let count = 0
+      const probe = new Date(cursor)
+      while (probe <= end) {
+        count += counts.get(todayKey(probe)) || 0
+        probe.setDate(probe.getDate() + 1)
+      }
+      bars.push({ label: `S${index}`, count })
+      index += 1
+      cursor.setTime(end.getTime())
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    return bars
+  }
+  const start = mondayOf(now)
+  start.setDate(start.getDate() - 7 * 7)
+  return Array.from({ length: 8 }, (_, index) => {
+    const day = new Date(start)
+    day.setDate(start.getDate() + index * 7)
+    const end = new Date(day)
+    end.setDate(day.getDate() + 6)
+    let count = 0
+    const probe = new Date(day)
+    while (probe <= end) {
+      count += counts.get(todayKey(probe)) || 0
+      probe.setDate(probe.getDate() + 1)
+    }
+    return { label: showDate(todayKey(day)), count }
+  })
+}
+
+export function evolutionOf(state, range) {
+  const today = todayKey()
+  const items = (state.history || []).filter((item) => inEvolutionRange(item.date, range, today))
+  const counted = items.filter((item) => !item.extra)
+  const sessions = range === 'tudo' ? Math.max(state.sessionsDone || 0, counted.length) : counted.length
+  const weeks = new Set(counted.map((item) => weekStamp(item.date))).size
+  const raw = barsFor(range, counted, today)
+  const peak = Math.max(1, ...raw.map((bar) => bar.count))
+  return {
+    items,
+    sessions,
+    weeks,
+    bars: raw.map((bar) => ({ ...bar, amount: bar.count ? Math.max(12, Math.round((bar.count / peak) * 100)) : 0 })),
+  }
+}

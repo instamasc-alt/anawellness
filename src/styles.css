@@ -366,6 +366,26 @@ p { line-height: 1.45; }
 
 .session { align-content: start; }
 .session-title { font-family: var(--display); font-size: 34px; line-height: 0.95; font-weight: 600; }
+.session-media {
+  height: 220px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #101612;
+}
+.session-media img,
+.session-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  display: block;
+}
+.evolution-stats { grid-template-columns: 1fr 1fr; }
+.evo-bars { display: flex; align-items: flex-end; gap: 6px; height: 96px; }
+.evo-bar { flex: 1; min-width: 0; display: grid; align-content: end; justify-items: center; gap: 6px; height: 100%; }
+.evo-bar .track { width: 100%; height: 72px; display: flex; align-items: flex-end; }
+.evo-bar .fill { width: 100%; }
+.evo-bar span { color: var(--muted); font-size: 10px; line-height: 1; }
 .ring { position: relative; width: min(250px, 72vw); margin: 4px auto; color: var(--accent); }
 .ring svg { width: 100%; height: auto; transform: rotate(-90deg); }
 .ring-track { fill: none; stroke: #24302a; stroke-width: 6; }
@@ -434,7 +454,7 @@ p { line-height: 1.45; }
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   border-top: 1px solid var(--line);
   background: rgba(8, 10, 9, 0.94);
   padding: 8px 4px calc(10px + env(safe-area-inset-bottom));

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { exercises } from '../data'
 import { afterWork, formatClock, initialRun, primaryAction, retreat, tick } from '../engine'
 import { IconClose, IconNext, IconPause, IconPlay, IconPrev } from '../components/Icons'
+import { patternPhoto, patternVideo } from '../media'
 import Ring from '../components/Ring'
 
-export default function Session({ workout, onClose, onComplete }) {
+export default function Session({ workout, gender, onClose, onComplete }) {
   const [run, setRun] = useState(() => initialRun(workout))
   const [ask, setAsk] = useState(false)
   const [feeling, setFeeling] = useState('')
@@ -63,6 +64,8 @@ export default function Session({ workout, onClose, onComplete }) {
 
   const step = workout.steps[run.i]
   const exercise = exercises[step.exerciseId]
+  const nextStep = workout.steps[run.i + 1]
+  const shown = run.mode === 'rest' && nextStep ? exercises[nextStep.exerciseId] : exercise
   const total = run.mode === 'rest' ? step.rest : step.kind === 'timer' ? step.seconds : 1
   const progress = run.mode === 'work' && step.kind === 'mark' ? 1 : total ? run.left / total : 0
   const value = run.mode === 'work' && step.kind === 'mark' ? step.reps : formatClock(run.left)
@@ -82,6 +85,8 @@ export default function Session({ workout, onClose, onComplete }) {
         </button>
       </header>
       {step.tag ? <span className="badge">{step.tag}</span> : null}
+      <MoveMedia key={`${shown.id}-${run.mode}`} exercise={shown} gender={gender} paused={run.paused} />
+      {run.mode === 'rest' && nextStep ? <p className="fine">Próximo movimento · {shown.name}</p> : null}
       {run.mode === 'work' && step.note ? <p className="cue">{step.note}</p> : null}
       {run.mode === 'work' ? <p className="sub tight">{exercise.steps[0]}</p> : <p className="sub tight">A próxima série entra sozinha.</p>}
 
@@ -139,6 +144,36 @@ export default function Session({ workout, onClose, onComplete }) {
         </div>
       ) : null}
     </section>
+  )
+}
+
+function MoveMedia({ exercise, gender, paused }) {
+  const videoRef = useRef(null)
+  const video = patternVideo(gender, exercise.pattern)
+  const photo = patternPhoto(gender, exercise.pattern)
+
+  useEffect(() => {
+    const node = videoRef.current
+    if (!node) return undefined
+    if (paused) {
+      node.pause()
+      return undefined
+    }
+    node.play().catch(() => {})
+    return undefined
+  }, [paused, video])
+
+  if (video) {
+    return (
+      <div className="session-media">
+        <video ref={videoRef} src={video} poster={photo} playsInline muted loop />
+      </div>
+    )
+  }
+  return (
+    <div className="session-media">
+      <img src={photo} alt="" />
+    </div>
   )
 }
 

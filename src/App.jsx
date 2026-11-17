@@ -5,6 +5,7 @@ import { blocksOf, applyResult, buildWorkout, completeOnboarding, defaultState, 
 import { supabase } from './supabase'
 import Coach from './screens/Coach'
 import Exercise from './screens/Exercise'
+import Evolution from './screens/Evolution'
 import Home from './screens/Home'
 import Library from './screens/Library'
 import Account from './screens/Account'
@@ -158,7 +159,7 @@ export default function App() {
             />
           ) : null}
           {!assessing && inSession ? (
-            <Session workout={overlay.workout} onClose={() => setOverlay(null)} onComplete={finish} />
+            <Session workout={overlay.workout} gender={data.gender} onClose={() => setOverlay(null)} onComplete={finish} />
           ) : null}
           {!overlay && !assessing && tab === 'home' ? (
             <Home
@@ -233,6 +234,7 @@ export default function App() {
               }}
             />
           ) : null}
+          {!overlay && !assessing && tab === 'evolution' ? <Evolution data={data} /> : null}
           {!overlay && !assessing && tab === 'profile' ? (
             <Profile
               data={data}
