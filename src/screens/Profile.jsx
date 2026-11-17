@@ -1,13 +1,59 @@
 import { useState } from 'react'
 import AssessmentCard from '../components/AssessmentCard'
-import { levelOf, showDate, standards } from '../engine'
+import { levelOf, showDate, standards, todayKey } from '../engine'
+import Goals, { GOALS } from './Goals'
 
 const FEEL = { pesado: 'Pesado', certo: 'No ponto', facil: 'Fácil' }
+const MEASURES = [
+  ['waist', 'Cintura'],
+  ['hip', 'Quadril'],
+  ['chest', 'Peito'],
+]
+
+function amount(value) {
+  return String(value || '').replace('.', ',')
+}
+
+function weightOf(value) {
+  const text = value.replace(',', '.').replace(/[^\d.]/g, '')
+  const parts = text.split('.')
+  const whole = (parts[0] || '').slice(0, 3)
+  if (parts.length === 1) return whole
+  return `${whole}.${parts[1].slice(0, 1)}`
+}
+
+function centimeters(value) {
+  return value.replace(/\D/g, '').slice(0, 3)
+}
 
 export default function Profile({ data, onChange, onReset, onSignOut, onAssess, owner, onAdmin }) {
   const level = levelOf(data)
   const [ask, setAsk] = useState(false)
+  const [goalsOpen, setGoalsOpen] = useState(false)
+  const [draft, setDraft] = useState({ weight: '', waist: '', hip: '', chest: '' })
   const marks = standards(data)
+  const records = data.body || []
+  const current = records[0]
+  const initial = records[records.length - 1]
+  const chosen = GOALS.filter(([id]) => (data.goals || []).includes(id))
+
+  function registerBody() {
+    if (!draft.weight) return
+    onChange({
+      body: [{ date: todayKey(), ...draft }, ...records].slice(0, 24),
+    })
+    setDraft({ weight: '', waist: '', hip: '', chest: '' })
+  }
+
+  if (goalsOpen) {
+    return (
+      <Goals
+        selected={data.goals}
+        onChange={(goals) => onChange({ goals })}
+        onClose={() => setGoalsOpen(false)}
+      />
+    )
+  }
 
   return (
     <section className="screen">
@@ -39,6 +85,92 @@ export default function Profile({ data, onChange, onReset, onSignOut, onAssess, 
       </div> : null}
 
       {data.onboarded ? null : <AssessmentCard onAssess={onAssess} />}
+
+      {data.onboarded ? (
+        <>
+          <section className="panel">
+            <h3>Peso atual</h3>
+            <p className="session-title">{current?.weight ? `${amount(current.weight)} kg` : 'Sem registro'}</p>
+            {current ? <p className="fine">Última marca em {showDate(current.date)}.</p> : <p className="fine">O primeiro registro vira o corpo inicial.</p>}
+            {initial && records.length > 1 && initial.weight && current.weight ? (
+              <p className="fine">Corpo inicial: {amount(initial.weight)} kg em {showDate(initial.date)}.</p>
+            ) : null}
+          </section>
+
+          <section className="panel">
+            <h3>{records.length ? 'Nova marca' : 'Corpo inicial'}</h3>
+            <p className="fine">Peso em quilos. Medidas em centímetros, sempre no mesmo ponto.</p>
+            <label className="stack tight-stack">
+              <span className="tiny">Peso</span>
+              <input className="field" inputMode="decimal" value={draft.weight} onChange={(event) => setDraft({ ...draft, weight: weightOf(event.target.value) })} />
+            </label>
+            {MEASURES.map(([key, label]) => (
+              <label key={key} className="stack tight-stack">
+                <span className="tiny">{label}</span>
+                <input className="field" inputMode="numeric" value={draft[key]} onChange={(event) => setDraft({ ...draft, [key]: centimeters(event.target.value) })} />
+              </label>
+            ))}
+            <button type="button" className="btn" disabled={!draft.weight} onClick={registerBody}>
+              {records.length ? 'Registrar de novo' : 'Marcar corpo inicial'}
+            </button>
+          </section>
+
+          {initial ? (
+            <section className="panel">
+              <h3>Corpo inicial · {showDate(initial.date)}</h3>
+              <ul className="standards">
+                <li>
+                  <b>Peso</b>
+                  <span>{amount(initial.weight)} kg</span>
+                </li>
+                {MEASURES.map(([key, label]) =>
+                  initial[key] ? (
+                    <li key={key}>
+                      <b>{label}</b>
+                      <span>{initial[key]} cm</span>
+                    </li>
+                  ) : null,
+                )}
+              </ul>
+            </section>
+          ) : null}
+
+          {records.length > 1 ? (
+            <section className="panel">
+              <h3>Marcas</h3>
+              <ul className="standards">
+                {records.slice(0, 6).map((item, index) => (
+                  <li key={`${item.date}-${index}`}>
+                    <b>{showDate(item.date)}</b>
+                    <span>
+                      {amount(item.weight)} kg
+                      {MEASURES.filter(([key]) => item[key]).map(([key, label]) => ` · ${label} ${item[key]}`).join('')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <section className="panel">
+            <h3>Objetivos</h3>
+            {chosen.length ? (
+              <div className="pills">
+                {chosen.map(([id, title]) => (
+                  <span key={id} className="badge">
+                    {title}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="fine">Ainda sem objetivo marcado.</p>
+            )}
+            <button type="button" className="btn ghost" onClick={() => setGoalsOpen(true)}>
+              {chosen.length ? 'Rever objetivos' : 'Escolher objetivos'}
+            </button>
+          </section>
+        </>
+      ) : null}
 
       {data.onboarded ? (
       <>

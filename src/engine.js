@@ -144,6 +144,8 @@ export function defaultState() {
     test: null,
     coach: [],
     coachUnread: 0,
+    goals: [],
+    body: [],
   }
 }
 
