@@ -4,7 +4,7 @@ import { levelOf, showDate, standards } from '../engine'
 
 const FEEL = { pesado: 'Pesado', certo: 'No ponto', facil: 'Fácil' }
 
-export default function Profile({ data, onChange, onReset, onSignOut, onAssess }) {
+export default function Profile({ data, onChange, onReset, onSignOut, onAssess, owner, onAdmin }) {
   const level = levelOf(data)
   const [ask, setAsk] = useState(false)
   const marks = standards(data)
@@ -132,6 +132,11 @@ export default function Profile({ data, onChange, onReset, onSignOut, onAssess }
       {data.onboarded ? (
         <button type="button" className="btn ghost" onClick={() => setAsk(true)}>
           Zerar progresso
+        </button>
+      ) : null}
+      {owner ? (
+        <button type="button" className="btn ghost" onClick={onAdmin}>
+          Painel
         </button>
       ) : null}
       <button type="button" className="btn ghost" onClick={onSignOut}>

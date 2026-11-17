@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadAccountState, saveAccountState } from './account'
+import { isOwner } from './admin'
 import TabBar from './components/TabBar'
 import { blocksOf, applyResult, buildWorkout, completeOnboarding, defaultState, sessionForExercise, trainedToday } from './engine'
 import { supabase } from './supabase'
+import Admin from './screens/Admin'
 import Coach from './screens/Coach'
 import Exercise from './screens/Exercise'
 import Evolution from './screens/Evolution'
@@ -141,6 +143,7 @@ export default function App() {
   }
 
   const inSession = overlay?.type === 'session'
+  const owner = isOwner(session.user.email)
   const freeze = tab === 'coach' && !overlay && !assessing
 
   return (
@@ -191,6 +194,7 @@ export default function App() {
               }
             />
           ) : null}
+          {overlay?.type === 'admin' ? <Admin onBack={() => setOverlay(null)} /> : null}
           {overlay?.type === 'exercise' ? (
             <Exercise
               id={overlay.id}
@@ -240,6 +244,8 @@ export default function App() {
               data={data}
               onAssess={() => setAssessing(true)}
               onChange={(patch) => setData((state) => ({ ...state, ...patch }))}
+              owner={owner}
+              onAdmin={() => setOverlay({ type: 'admin' })}
               onSignOut={() => supabase?.auth.signOut()}
               onReset={() => {
                 setData({ ...defaultState(), name: data.name, email: data.email })
