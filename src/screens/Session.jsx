@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { exercises } from '../data'
 import { afterWork, formatClock, initialRun, primaryAction, retreat, tick } from '../engine'
 import { IconClose, IconNext, IconPause, IconPlay, IconPrev } from '../components/Icons'
-import { patternPhoto, patternVideo } from '../media'
+import { exerciseVideo, patternPhoto } from '../media'
 import Ring from '../components/Ring'
 
 export default function Session({ workout, gender, onClose, onComplete }) {
@@ -96,7 +96,23 @@ export default function Session({ workout, gender, onClose, onComplete }) {
         </article>
       ) : null}
       {run.mode === 'work' && step.note ? <p className="cue">{step.note}</p> : null}
-      {run.mode === 'work' ? <p className="sub tight">{exercise.steps[0]}</p> : <p className="sub tight">A próxima série entra sozinha.</p>}
+      {run.mode === 'work' ? (
+        <>
+          <p className="tiny">Como fazer</p>
+          <ol className="steps">
+            {exercise.steps.map((line, index) => (
+              <li key={line}>
+                <b>{index + 1}</b>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ol>
+          {exercise.tips[0] ? <p className="cue">{exercise.tips[0]}</p> : null}
+          {exercise.avoid ? <p className="fine">Evite: {exercise.avoid}</p> : null}
+        </>
+      ) : (
+        <p className="sub tight">A próxima série entra sozinha.</p>
+      )}
 
       <Ring progress={progress} value={value} label={label} sub={sub} />
 
@@ -157,7 +173,7 @@ export default function Session({ workout, gender, onClose, onComplete }) {
 
 function MoveMedia({ exercise, gender, paused }) {
   const videoRef = useRef(null)
-  const video = patternVideo(gender, exercise.pattern)
+  const video = exerciseVideo(gender, exercise.id)
   const photo = patternPhoto(gender, exercise.pattern)
 
   useEffect(() => {

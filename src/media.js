@@ -31,6 +31,15 @@ export function patternPhoto(gender, pattern) {
   return `/library/${who(gender)}-${scene}.jpg`
 }
 
+const EXERCISE_VIDEO = {
+  'm:bend-reach': '/library/m-bend-reach.mp4',
+  'm:push-up': '/library/m-push.mp4',
+}
+
+export function exerciseVideo(gender, exerciseId) {
+  return EXERCISE_VIDEO[`${who(gender)}:${exerciseId}`] || ''
+}
+
 export function patternVideo(gender, pattern) {
   if (pattern === 'Empurrar' && who(gender) === 'm') return '/library/m-push.mp4'
   return ''

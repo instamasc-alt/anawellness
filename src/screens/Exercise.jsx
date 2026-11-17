@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { PATTERN_BLURB, exercises } from '../data'
 import { easierThan, harderThan } from '../engine'
-import { patternPhoto, patternVideo } from '../media'
+import { exerciseVideo, patternPhoto } from '../media'
 import { IconBack, IconHeart, IconPlay } from '../components/Icons'
 
 const TABS = ['Como fazer', 'Músculos', 'Ajustes']
@@ -17,7 +17,7 @@ export default function Exercise({ id, gender, favorite, onBack, onStart, onTogg
   }, [id])
 
   if (!exercise) return null
-  const video = patternVideo(gender, exercise.pattern)
+  const video = exerciseVideo(gender, exercise.id)
   const photo = patternPhoto(gender, exercise.pattern)
 
   return (
