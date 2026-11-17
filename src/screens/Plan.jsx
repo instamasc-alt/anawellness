@@ -1,6 +1,7 @@
 import AssessmentCard from '../components/AssessmentCard'
-import { IconBell, IconCheck, Pose } from '../components/Icons'
+import { IconBell, IconCheck } from '../components/Icons'
 import { blocksOf, buildWorkout, levelOf } from '../engine'
+import { patternPhoto } from '../media'
 
 const PHASES = [
   {
@@ -8,21 +9,21 @@ const PHASES = [
     text: 'Semanas 1 e 2. Aprender a posição e fechar as séries sem pressa.',
     from: 1,
     to: 2,
-    art: 'push',
+    art: 'Empurrar',
   },
   {
     title: 'Construção',
     text: 'Semanas 3 a 6. Primeiro sobe a repetição. Depois entra mais uma série.',
     from: 3,
     to: 6,
-    art: 'full',
+    art: 'Motor',
   },
   {
     title: 'Padrão',
     text: 'Semanas 7 e 8. Prova curta e o primeiro contato com o exercício seguinte.',
     from: 7,
     to: 8,
-    art: 'test',
+    art: 'Puxar',
   },
 ]
 
@@ -58,7 +59,7 @@ export default function Plan({ data, onStart, onBell, onAssess }) {
           return (
             <article key={phase.title} className={current ? 'phase on' : 'phase'}>
               <div className="thumb">
-                <Pose name={phase.art} />
+                <img src={patternPhoto(data.gender, phase.art)} alt="" />
               </div>
               <div className="phase-copy">
                 <b>{phase.title}</b>
