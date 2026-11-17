@@ -86,7 +86,15 @@ export default function Session({ workout, gender, onClose, onComplete }) {
       </header>
       {step.tag ? <span className="badge">{step.tag}</span> : null}
       <MoveMedia key={`${shown.id}-${run.mode}`} exercise={shown} gender={gender} paused={run.paused} />
-      {run.mode === 'rest' && nextStep ? <p className="fine">Próximo movimento · {shown.name}</p> : null}
+      {run.mode === 'rest' && nextStep ? (
+        <article className="next-card">
+          <img className="move-thumb" src={patternPhoto(gender, shown.pattern)} alt="" />
+          <div>
+            <span className="tiny">Próximo movimento</span>
+            <b>{shown.name}</b>
+          </div>
+        </article>
+      ) : null}
       {run.mode === 'work' && step.note ? <p className="cue">{step.note}</p> : null}
       {run.mode === 'work' ? <p className="sub tight">{exercise.steps[0]}</p> : <p className="sub tight">A próxima série entra sozinha.</p>}
 

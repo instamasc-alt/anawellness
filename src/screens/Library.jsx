@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { PATTERN_ORDER, exercises } from '../data'
-import { FILTERS, listWorkouts, todayCode } from '../engine'
+import { FILTERS, levelSeal, listWorkouts, todayCode } from '../engine'
 import { IconBell, IconHeart } from '../components/Icons'
 import { workoutPhoto, patternPhoto } from '../media'
 import AssessmentCard from '../components/AssessmentCard'
@@ -73,6 +73,25 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
         ))}
       </div>
 
+      {groups.map((group) => (
+        <section key={group.pattern} className="stack">
+          <h3>{group.pattern}</h3>
+          {group.items.map((exercise) => (
+            <button key={exercise.id} type="button" className="move-card" onClick={() => onOpenExercise(exercise.id)}>
+              <div className="move-photo">
+                <img src={patternPhoto(data.gender, exercise.pattern)} alt="" />
+                <span className="badge">{levelSeal(exercise.id)}</span>
+              </div>
+              <span className="move-copy">
+                <b>{exercise.name}</b>
+                <span>{exercise.equipment}</span>
+              </span>
+            </button>
+          ))}
+        </section>
+      ))}
+
+      <h3>Sessões</h3>
       <div className="stack">
         {workouts.map((workout) => (
           <article key={workout.id} className="work">
@@ -103,24 +122,6 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
         ))}
         {workouts.length === 0 ? <p className="fine">Nenhuma sessão com esse filtro.</p> : null}
       </div>
-
-      {groups.map((group) => (
-        <section key={group.pattern} className="stack">
-          <h3>{group.pattern}</h3>
-          {group.items.map((exercise) => (
-            <button key={exercise.id} type="button" className="move" onClick={() => onOpenExercise(exercise.id)}>
-              <img className="move-thumb" src={patternPhoto(data.gender, exercise.pattern)} alt="" />
-              <div>
-                <b>{exercise.name}</b>
-                <span>
-                  {exercise.equipment} · {exercise.muscles.slice(0, 2).join(', ')}
-                </span>
-              </div>
-              <span className="chev">›</span>
-            </button>
-          ))}
-        </section>
-      ))}
       </>
       ) : null}
     </section>

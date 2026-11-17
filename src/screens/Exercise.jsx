@@ -1,17 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PATTERN_BLURB, exercises } from '../data'
 import { easierThan, harderThan } from '../engine'
 import { patternPhoto, patternVideo } from '../media'
-import { IconBack, IconHeart } from '../components/Icons'
+import { IconBack, IconHeart, IconPlay } from '../components/Icons'
 
 const TABS = ['Como fazer', 'Músculos', 'Ajustes']
 
 export default function Exercise({ id, gender, favorite, onBack, onStart, onToggleFav, onOpen }) {
   const [tab, setTab] = useState('Como fazer')
+  const [playing, setPlaying] = useState(false)
   const exercise = exercises[id]
   const easier = easierThan(id)
   const harder = harderThan(id)
+  useEffect(() => {
+    setPlaying(false)
+  }, [id])
+
   if (!exercise) return null
+  const video = patternVideo(gender, exercise.pattern)
+  const photo = patternPhoto(gender, exercise.pattern)
 
   return (
     <section className="screen">
@@ -29,17 +36,16 @@ export default function Exercise({ id, gender, favorite, onBack, onStart, onTogg
         </button>
       </header>
       <div className="hero">
-        {patternVideo(gender, exercise.pattern) ? (
-          <video
-            src={patternVideo(gender, exercise.pattern)}
-            poster={patternPhoto(gender, exercise.pattern)}
-            controls
-            playsInline
-            preload="metadata"
-          />
+        {playing && video ? (
+          <video src={video} poster={photo} controls autoPlay playsInline />
         ) : (
-          <img src={patternPhoto(gender, exercise.pattern)} alt="" />
+          <img src={photo} alt="" />
         )}
+        {video && !playing ? (
+          <button type="button" className="round big play-on-photo" aria-label="Ver execução" onClick={() => setPlaying(true)}>
+            <IconPlay />
+          </button>
+        ) : null}
       </div>
       <p className="tiny">{exercise.pattern}</p>
       <div className="spread">

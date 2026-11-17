@@ -240,6 +240,33 @@ export function harderThan(id) {
   return next ? exercises[next] : null
 }
 
+const SEAL = {}
+for (const level of LEVELS) {
+  const ids = [level.push, ...Object.values(level.pull), level.squat, level.hinge, ...level.core, level.motor]
+  for (const id of ids) if (!SEAL[id]) SEAL[id] = level.name
+}
+
+export function levelSeal(id) {
+  if (PREP.includes(id)) return 'Preparação'
+  if (RECOVERY.includes(id)) return 'Soltura'
+  if (SEAL[id]) return SEAL[id]
+  let prev = easierThan(id)
+  let guard = 0
+  while (prev && guard < 12) {
+    if (SEAL[prev.id]) return SEAL[prev.id]
+    prev = easierThan(prev.id)
+    guard += 1
+  }
+  let next = harderThan(id)
+  guard = 0
+  while (next && guard < 12) {
+    if (SEAL[next.id]) return SEAL[next.id]
+    next = harderThan(next.id)
+    guard += 1
+  }
+  return 'Base'
+}
+
 function createBuilder() {
   const steps = []
   function add(exerciseId, opts = {}) {

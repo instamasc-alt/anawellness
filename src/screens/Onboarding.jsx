@@ -50,6 +50,7 @@ const PULLS = [
 ]
 
 export default function Onboarding({ name = '', onDone, onClose }) {
+  const [cover, setCover] = useState(true)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({ gender: '', start: '', days: 0, pull: '' })
   const current = STEPS[step]
@@ -63,6 +64,28 @@ export default function Onboarding({ name = '', onDone, onClose }) {
     if (!ready) return
     if (step < STEPS.length - 1) setStep(step + 1)
     else onDone({ ...answers, name })
+  }
+
+  if (cover) {
+    return (
+      <section className="screen onboard">
+        <header className="spread">
+          <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+          <button type="button" className="pill" onClick={onClose || (() => setCover(false))}>
+            Pular
+          </button>
+        </header>
+        <div className="cover-photo">
+          <img src="/library/m-push.jpg" alt="" />
+        </div>
+        <p className="tiny">Avaliação</p>
+        <h1>Quatro perguntas e o treino abre.</h1>
+        <p className="sub">O plano de oito semanas continua na tela. A avaliação só marca o seu ponto.</p>
+        <button type="button" className="btn" onClick={() => setCover(false)}>
+          Começar avaliação
+        </button>
+      </section>
+    )
   }
 
   return (
