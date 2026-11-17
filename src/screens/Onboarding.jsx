@@ -22,8 +22,8 @@ const STEPS = [
   {
     key: 'pull',
     kicker: 'Avaliação',
-    title: 'Como você puxa em casa?',
-    text: 'Empurrar no chão é fácil de achar. Puxar é o que falta na maioria dos treinos caseiros.',
+    title: 'O que você tem para puxar?',
+    text: 'A flexão usa o chão. A puxada usa o que existe na sua casa. Toque na opção que descreve o seu lugar.',
   },
 ]
 
@@ -44,9 +44,9 @@ const GENDERS = [
 ]
 
 const PULLS = [
-  ['porta', 'Porta firme', 'Toalha na maçaneta. A puxada de quem não tem barra.'],
-  ['barra', 'Barra', 'Suspensão, negativa e barra estrita.'],
-  ['chao', 'Só o chão', 'Remada deitado. A porta abre o degrau seguinte.'],
+  ['porta', 'Uma porta fechada', 'Passe uma toalha na maçaneta, segure as duas pontas e puxe o corpo em direção à porta. É o caminho de quem não tem barra.'],
+  ['barra', 'Uma barra', 'Você se pendura e puxa o queixo até a barra. Vale a barra encaixada na porta e a barra fixa na parede.'],
+  ['chao', 'Somente o chão', 'Não há porta firme nem barra. Você deita de bruços e puxa o peito do chão. A puxada do plano fica nesse movimento.'],
 ]
 
 export default function Onboarding({ name = '', onDone, onClose }) {
@@ -106,7 +106,9 @@ export default function Onboarding({ name = '', onDone, onClose }) {
       {current.key === 'pull' ? (
         <>
           <Choices options={PULLS} value={answers.pull} onPick={(pull) => setAnswers({ ...answers, pull })} />
-          <p className="fine">Porta travada, abrindo para o lado oposto, com um calço no pé. Se a maçaneta mexer, pare.</p>
+          <p className="fine">
+            Se a escolha for a porta, ela fica fechada e abre para o outro cômodo. Um calço segura a porta no chão. Se a maçaneta girar ou a porta ceder, pare e escolha somente o chão.
+          </p>
         </>
       ) : null}
 
