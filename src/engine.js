@@ -689,14 +689,12 @@ export function applyResult(state, { workout, feeling, test, extra }) {
       easy = 0
       hard = 0
     }
-    if (week > 8) {
+    if (Math.floor((week - 1) / 8) > Math.floor((state.week - 1) / 8)) {
       if (level < 4 && feeling !== 'pesado') {
         level += 1
-        week = 1
-        note = `Ciclo fechado. Nível ${LEVELS[level - 1].name}. A faixa recomeça embaixo, no exercício novo.`
-      } else {
-        week = 5
-        note = note || 'Ciclo de padrão renovado na fase de densidade.'
+        note = `Oito semanas fechadas. Nível ${LEVELS[level - 1].name}. A semana segue, no exercício novo.`
+      } else if (!note) {
+        note = 'Oito semanas fechadas. A semana segue no mesmo nível.'
       }
     }
     next.week = week
@@ -773,7 +771,7 @@ export function replyTo(state, text) {
     return `Próxima missão: ${today.title}, ${today.minutes} min. ${today.why} Ponto de atenção: ${today.cue}`
   }
   if (/semana|quant|quando|resultado/.test(message)) {
-    return `O ciclo tem 8 semanas. Você está na semana ${state.week}, fase ${phaseOf(state.week).name}, nível ${level.name}. Resultado alto aqui é repetir o processo: posição, repetição, série, depois o exercício mais difícil.`
+    return `Você está na semana ${state.week}, fase ${phaseOf(state.week).name}, nível ${level.name}. As oito primeiras organizam o caminho. Depois a semana continua. Resultado alto aqui é repetir o processo: posição, repetição, série, depois o exercício mais difícil.`
   }
   if (/dor/.test(message)) {
     return 'Dor muscular difusa no dia seguinte cabe no plano. Dor aguda, fisgada ou articulação inchada: pare o movimento e desça o degrau. Eu não atravesso dor para cumprir série.'
@@ -941,6 +939,26 @@ function barsFor(range, items, today) {
     }
     return { label: showDate(todayKey(day)), count }
   })
+}
+
+export function achievementsOf(state) {
+  const sessions = state.sessionsDone || 0
+  const week = state.onboarded ? state.week || 1 : 0
+  const days = state.days || 3
+  const level = state.level || 1
+  const items = [
+    { id: 'first', title: 'Primeira sessão', text: 'A primeira missão registrada.', done: sessions >= 1, progress: Math.min(sessions, 1), goal: 1 },
+    { id: 'week', title: 'Semana fechada', text: 'Os dias combinados da semana, cumpridos.', done: sessions >= days, progress: Math.min(sessions, days), goal: days },
+    { id: 'constancia', title: 'Quatro semanas', text: 'Um mês dentro do plano.', done: week >= 4, progress: Math.min(week, 4), goal: 4 },
+    { id: 'bloco', title: 'Oito semanas', text: 'O primeiro bloco fechado.', done: week >= 8, progress: Math.min(week, 8), goal: 8 },
+    { id: 'segue', title: 'Semana nove', text: 'O progresso passou das oito semanas.', done: week >= 9, progress: Math.min(week, 9), goal: 9 },
+    { id: 'base', title: 'Nível Base', text: 'O segundo degrau da escada.', done: level >= 2 },
+    { id: 'op', title: 'Nível Operacional', text: 'Flexão no chão e a puxada mais baixa.', done: level >= 3 },
+    { id: 'padrao', title: 'Nível Padrão', text: 'O degrau alto da escada.', done: level >= 4 },
+    { id: 'prova', title: 'Prova', text: 'A prova curta registrada.', done: Boolean(state.test) },
+    { id: 'corpo', title: 'Corpo marcado', text: 'Peso e medidas do ponto de partida.', done: (state.body || []).length > 0 },
+  ]
+  return { total: items.length, done: items.filter((item) => item.done).length, items }
 }
 
 export function evolutionOf(state, range) {

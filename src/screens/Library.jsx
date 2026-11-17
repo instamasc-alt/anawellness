@@ -54,7 +54,7 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
       <p className="sub tight">
         {data.onboarded
           ? 'Sessões desenhadas para casa. O movimento certo muda com o seu nível.'
-          : 'A biblioteca abre com a avaliação. O plano de oito semanas continua visível.'}
+          : 'A biblioteca abre com a avaliação. O plano continua visível.'}
       </p>
       {data.onboarded ? null : <AssessmentCard onAssess={onAssess} />}
       {data.onboarded ? (

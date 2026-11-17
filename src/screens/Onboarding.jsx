@@ -80,7 +80,7 @@ export default function Onboarding({ name = '', onDone, onClose }) {
         </div>
         <p className="tiny">Avaliação</p>
         <h1>Quatro perguntas e o treino abre.</h1>
-        <p className="sub">O plano de oito semanas continua na tela. A avaliação só marca o seu ponto.</p>
+        <p className="sub">O plano começa em oito semanas e segue depois. A avaliação só marca o seu ponto.</p>
         <button type="button" className="btn" onClick={() => setCover(false)}>
           Começar avaliação
         </button>

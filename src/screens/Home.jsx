@@ -66,7 +66,7 @@ export default function Home({ data, onStart, onBell, onTrain, onAssess, onPlan 
       <div className="stats">
         <div className="stat">
           <b>{data.week}</b>
-          <span>semana de 8</span>
+          <span>semana</span>
         </div>
         <div className="stat">
           <b>{data.streak}</b>

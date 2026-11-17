@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { evolutionOf, showDate } from '../engine'
+import Achievements from './Achievements'
+import { achievementsOf, evolutionOf, showDate } from '../engine'
 
 const FEEL = { pesado: 'Pesado', certo: 'No ponto', facil: 'Fácil' }
 const RANGES = [
@@ -10,13 +11,26 @@ const RANGES = [
 
 export default function Evolution({ data }) {
   const [range, setRange] = useState('semana')
+  const [board, setBoard] = useState(false)
   const view = evolutionOf(data, range)
+  const marks = achievementsOf(data)
+
+  if (board) return <Achievements data={data} onClose={() => setBoard(false)} />
 
   return (
     <section className="screen">
       <p className="tiny">Evolução</p>
       <h1>O que já foi feito</h1>
-      <p className="sub">Sessões registradas. O mapa das oito semanas continua no Plano.</p>
+      <p className="sub">Sessões registradas. A semana no plano não para nas oito.</p>
+      <button type="button" className="panel spread" onClick={() => setBoard(true)}>
+        <span>
+          <b>Conquistas</b>
+          <span className="fine">
+            {marks.done} de {marks.total}
+          </span>
+        </span>
+        <span className="badge">Abrir</span>
+      </button>
       <div className="pills">
         {RANGES.map(([id, label]) => (
           <button key={id} type="button" className={range === id ? 'pill on' : 'pill'} onClick={() => setRange(id)}>
@@ -35,7 +49,7 @@ export default function Evolution({ data }) {
         </div>
       </div>
       <section className="panel">
-        <h3>{range === 'tudo' ? 'Oito semanas' : range === 'mes' ? 'Semanas do mês' : 'Dias da semana'}</h3>
+        <h3>{range === 'tudo' ? 'Semanas recentes' : range === 'mes' ? 'Semanas do mês' : 'Dias da semana'}</h3>
         <div className="evo-bars" aria-hidden="true">
           {view.bars.map((bar, index) => (
             <div className="evo-bar" key={`${bar.label}-${index}`}>

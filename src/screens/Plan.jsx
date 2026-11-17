@@ -45,8 +45,8 @@ export default function Plan({ data, onStart, onBell, onAssess }) {
         <h1>Seu plano</h1>
         <p className="sub">
           {locked
-            ? 'Oito semanas, em casa, do zero ao padrão. A avaliação marca o seu nível.'
-            : `Oito semanas, em casa, do zero ao padrão. Nível ${level.name}. ${data.days} dias por semana.`}
+            ? 'Oito semanas abrem o caminho. Depois a semana segue. A avaliação marca o seu nível.'
+            : `Semana ${data.week}. Nível ${level.name}. ${data.days} dias por semana.`}
         </p>
       </div>
 
@@ -54,8 +54,8 @@ export default function Plan({ data, onStart, onBell, onAssess }) {
 
       <div className="stack">
         {PHASES.map((phase) => {
-          const current = !locked && data.week >= phase.from && data.week <= phase.to
-          const past = !locked && data.week > phase.to
+          const current = !locked && (phase.to === 8 ? data.week >= phase.from : data.week >= phase.from && data.week <= phase.to)
+          const past = !locked && phase.to < 8 && data.week > phase.to
           return (
             <article key={phase.title} className={current ? 'phase on' : 'phase'}>
               <div className="thumb">
@@ -71,15 +71,17 @@ export default function Plan({ data, onStart, onBell, onAssess }) {
         })}
       </div>
 
-      <div className="week-rail" aria-label={locked ? 'Semana ainda não começou' : `Semana ${data.week} de 8`}>
+      <div className="week-rail" aria-label={locked ? 'Semana ainda não começou' : `Semana ${data.week}`}>
         {Array.from({ length: 8 }, (_, index) => (
           <i
             key={index}
-            className={locked ? '' : index + 1 < data.week ? 'done' : index + 1 === data.week ? 'now' : ''}
+            className={locked ? '' : data.week > 8 || index + 1 < data.week ? 'done' : index + 1 === data.week ? 'now' : ''}
           />
         ))}
       </div>
-      <p className="fine center">{locked ? 'A semana começa depois da avaliação.' : `Semana ${data.week} de 8`}</p>
+      <p className="fine center">
+        {locked ? 'A semana começa depois da avaliação.' : data.week > 8 ? `Semana ${data.week}. O padrão continua.` : `Semana ${data.week} de 8`}
+      </p>
 
       {locked ? null : (
         <button type="button" className="btn" onClick={() => onStart(workout.id)}>

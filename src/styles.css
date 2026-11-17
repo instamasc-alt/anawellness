@@ -190,6 +190,7 @@ p { line-height: 1.45; }
 .week-rail i.now { box-shadow: 0 0 0 3px rgba(214, 255, 74, 0.16); }
 .onboard-actions { display: grid; gap: 8px; }
 
+button.panel { width: 100%; text-align: left; border: 0; }
 .mission, .panel {
   background:
     radial-gradient(280px 120px at 100% 0%, rgba(214, 255, 74, 0.12), transparent 60%),
