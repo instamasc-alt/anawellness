@@ -3,8 +3,9 @@ import { PATTERN_ORDER, exercises } from '../data'
 import { FILTERS, listWorkouts, todayCode } from '../engine'
 import { IconBell, IconHeart } from '../components/Icons'
 import { workoutPhoto, patternPhoto } from '../media'
+import AssessmentCard from '../components/AssessmentCard'
 
-export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleFav, onBell }) {
+export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleFav, onBell, onAssess }) {
   const [filter, setFilter] = useState('Tudo')
   const [query, setQuery] = useState('')
   const today = todayCode(data)
@@ -50,7 +51,14 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
           {data.coachUnread > 0 ? <i className="dot" /> : null}
         </button>
       </header>
-      <p className="sub tight">Sessões desenhadas para casa. O movimento certo muda com o seu nível.</p>
+      <p className="sub tight">
+        {data.onboarded
+          ? 'Sessões desenhadas para casa. O movimento certo muda com o seu nível.'
+          : 'A biblioteca abre com a avaliação. O plano de oito semanas continua visível.'}
+      </p>
+      {data.onboarded ? null : <AssessmentCard onAssess={onAssess} />}
+      {data.onboarded ? (
+      <>
       <input
         className="field"
         value={query}
@@ -113,6 +121,8 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
           ))}
         </section>
       ))}
+      </>
+      ) : null}
     </section>
   )
 }

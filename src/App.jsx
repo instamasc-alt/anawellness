@@ -1,26 +1,71 @@
 import { useEffect, useRef, useState } from 'react'
+import { loadAccountState, saveAccountState } from './account'
 import TabBar from './components/TabBar'
-import { blocksOf, applyResult, buildWorkout, completeOnboarding, defaultState, loadState, saveState, sessionForExercise, trainedToday } from './engine'
+import { blocksOf, applyResult, buildWorkout, completeOnboarding, defaultState, sessionForExercise, trainedToday } from './engine'
+import { supabase } from './supabase'
 import Coach from './screens/Coach'
 import Exercise from './screens/Exercise'
 import Home from './screens/Home'
 import Library from './screens/Library'
+import Account from './screens/Account'
 import Onboarding, { GenderGate } from './screens/Onboarding'
 import Plan from './screens/Plan'
 import Profile from './screens/Profile'
 import Session from './screens/Session'
 
 export default function App() {
-  const [data, setData] = useState(loadState)
+  const [session, setSession] = useState(undefined)
+  const [hydrated, setHydrated] = useState(false)
+  const [data, setData] = useState(defaultState)
   const [tab, setTab] = useState('plan')
   const [overlay, setOverlay] = useState(null)
   const [pick, setPick] = useState(null)
   const [bell, setBell] = useState(false)
+  const [assessing, setAssessing] = useState(false)
   const mainRef = useRef(null)
+  const userId = session?.user?.id
 
   useEffect(() => {
-    saveState(data)
-  }, [data])
+    if (!supabase) {
+      setSession(null)
+      return undefined
+    }
+    let live = true
+    supabase.auth.getSession().then(({ data: auth }) => {
+      if (live) setSession(auth.session ?? null)
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') return
+      setSession(next)
+    })
+    return () => {
+      live = false
+      sub.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!userId || !session) {
+      setHydrated(false)
+      return undefined
+    }
+    let live = true
+    setHydrated(false)
+    loadAccountState(session).then((next) => {
+      if (!live) return
+      setData(next)
+      setHydrated(true)
+    })
+    return () => {
+      live = false
+    }
+  }, [userId])
+
+  useEffect(() => {
+    if (!hydrated || !session) return undefined
+    const timer = setTimeout(() => saveAccountState(session, data), 400)
+    return () => clearTimeout(timer)
+  }, [data, hydrated, userId])
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -35,9 +80,14 @@ export default function App() {
     setOverlay(null)
     setPick(null)
     setBell(false)
+    setAssessing(false)
   }
 
   function start(code) {
+    if (!data.onboarded) {
+      setAssessing(true)
+      return
+    }
     const extra = trainedToday(data)
     setPick(null)
     setBell(false)
@@ -51,24 +101,33 @@ export default function App() {
     setTab('home')
   }
 
-  if (!data.onboarded) {
+  if (session === undefined || (session && !hydrated)) {
     return (
       <div className="stage">
         <div className="app">
           <main className="main">
-            <Onboarding
-              onDone={(answers) => {
-                setData(completeOnboarding(answers))
-                setTab('plan')
-              }}
-            />
+            <section className="screen onboard">
+              <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+            </section>
           </main>
         </div>
       </div>
     )
   }
 
-  if (!data.gender) {
+  if (!session) {
+    return (
+      <div className="stage">
+        <div className="app">
+          <main className="main">
+            <Account />
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data.gender && data.onboarded) {
     return (
       <div className="stage">
         <div className="app">
@@ -80,23 +139,44 @@ export default function App() {
     )
   }
 
-  const session = overlay?.type === 'session'
-  const freeze = tab === 'coach' && !overlay
+  const inSession = overlay?.type === 'session'
+  const freeze = tab === 'coach' && !overlay && !assessing
 
   return (
     <div className="stage">
       <div className="app">
         <main ref={mainRef} className={freeze ? 'main freeze' : 'main'}>
-          {session ? (
+          {assessing ? (
+            <Onboarding
+              name={data.name}
+              onClose={() => setAssessing(false)}
+              onDone={(answers) => {
+                setData((current) => ({ ...completeOnboarding(answers), email: current.email }))
+                setAssessing(false)
+                setTab('plan')
+              }}
+            />
+          ) : null}
+          {!assessing && inSession ? (
             <Session workout={overlay.workout} onClose={() => setOverlay(null)} onComplete={finish} />
           ) : null}
-          {!overlay && tab === 'home' ? (
-            <Home data={data} onStart={start} onBell={() => setBell(true)} onTrain={() => go('train')} />
+          {!overlay && !assessing && tab === 'home' ? (
+            <Home
+              data={data}
+              onStart={start}
+              onBell={() => setBell(true)}
+              onTrain={() => go('train')}
+              onPlan={() => go('plan')}
+              onAssess={() => setAssessing(true)}
+            />
           ) : null}
-          {!overlay && tab === 'plan' ? <Plan data={data} onStart={start} onBell={() => setBell(true)} /> : null}
-          {!overlay && tab === 'train' ? (
+          {!overlay && !assessing && tab === 'plan' ? (
+            <Plan data={data} onStart={start} onBell={() => setBell(true)} onAssess={() => setAssessing(true)} />
+          ) : null}
+          {!overlay && !assessing && tab === 'train' ? (
             <Library
               data={data}
+              onAssess={() => setAssessing(true)}
               onBell={() => setBell(true)}
               onOpenWorkout={setPick}
               onOpenExercise={(id) => setOverlay({ type: 'exercise', id })}
@@ -135,7 +215,7 @@ export default function App() {
               }
             />
           ) : null}
-          {!overlay && tab === 'coach' ? (
+          {!overlay && !assessing && tab === 'coach' ? (
             <Coach
               data={data}
               onStart={start}
@@ -153,18 +233,20 @@ export default function App() {
               }}
             />
           ) : null}
-          {!overlay && tab === 'profile' ? (
+          {!overlay && !assessing && tab === 'profile' ? (
             <Profile
               data={data}
+              onAssess={() => setAssessing(true)}
               onChange={(patch) => setData((state) => ({ ...state, ...patch }))}
+              onSignOut={() => supabase?.auth.signOut()}
               onReset={() => {
-                setData(defaultState())
+                setData({ ...defaultState(), name: data.name, email: data.email })
                 setTab('plan')
               }}
             />
           ) : null}
         </main>
-        {session ? null : <TabBar tab={tab} unread={data.coachUnread} onChange={go} />}
+        {inSession ? null : <TabBar tab={tab} unread={data.coachUnread} onChange={go} />}
         {bell ? (
           <div className="sheet-back" onClick={() => setBell(false)}>
             <div className="sheet" onClick={(event) => event.stopPropagation()}>

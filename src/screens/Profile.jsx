@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import AssessmentCard from '../components/AssessmentCard'
 import { levelOf, showDate, standards } from '../engine'
 
 const FEEL = { pesado: 'Pesado', certo: 'No ponto', facil: 'Fácil' }
 
-export default function Profile({ data, onChange, onReset }) {
+export default function Profile({ data, onChange, onReset, onSignOut, onAssess }) {
   const level = levelOf(data)
   const [ask, setAsk] = useState(false)
   const marks = standards(data)
@@ -13,15 +14,16 @@ export default function Profile({ data, onChange, onReset }) {
       <p className="tiny">Perfil</p>
       <h1>{data.name}</h1>
       <p className="sub tight">
-        Nível {level.name}. {level.line}
+        {data.onboarded ? `Nível ${level.name}. ${level.line}` : 'A avaliação ainda não marcou o seu nível.'}
       </p>
+      {data.email ? <p className="fine">{data.email}</p> : null}
 
       <label className="stack tight-stack">
         <span className="tiny">Nome no treino</span>
         <input className="field" value={data.name} onChange={(event) => onChange({ name: event.target.value })} />
       </label>
 
-      <div className="stats">
+      {data.onboarded ? <div className="stats">
         <div className="stat">
           <b>{data.sessionsDone}</b>
           <span>sessões</span>
@@ -34,8 +36,12 @@ export default function Profile({ data, onChange, onReset }) {
           <b>{data.week}</b>
           <span>semana</span>
         </div>
-      </div>
+      </div> : null}
 
+      {data.onboarded ? null : <AssessmentCard onAssess={onAssess} />}
+
+      {data.onboarded ? (
+      <>
       <section className="panel">
         <h3>Fotos da biblioteca</h3>
         <div className="pills">
@@ -116,20 +122,27 @@ export default function Profile({ data, onChange, onReset }) {
           ))}
         </ul>
       </section>
+      </>
+      ) : null}
 
       <p className="fine">
         Dor aguda, fisgada ou inchaço: pare. Isto é treino, não atendimento médico. A estrutura vem do preparo de
         prontidão militar, com regressão de calistenia para quem começa em casa.
       </p>
-      <button type="button" className="btn ghost" onClick={() => setAsk(true)}>
-        Zerar progresso
+      {data.onboarded ? (
+        <button type="button" className="btn ghost" onClick={() => setAsk(true)}>
+          Zerar progresso
+        </button>
+      ) : null}
+      <button type="button" className="btn ghost" onClick={onSignOut}>
+        Sair da conta
       </button>
 
       {ask ? (
         <div className="modal-back">
           <div className="modal" role="dialog" aria-modal="true">
             <h3>Zerar o plano?</h3>
-            <p>Histórico, prova e nível saem. Você refaz a entrada.</p>
+            <p>Histórico, prova e nível saem. A conta continua, e o treino espera uma nova avaliação.</p>
             <button type="button" className="btn" onClick={() => setAsk(false)}>
               Manter
             </button>

@@ -1,6 +1,6 @@
 import { exercises } from './data.js'
 
-const KEY = 'ana-wellness-v1'
+export const KEY = 'ana-wellness-v1'
 
 export const LEVELS = [
   {
@@ -140,6 +140,7 @@ export function defaultState() {
     history: [],
     favorites: [],
     gender: '',
+    email: '',
     test: null,
     coach: [],
     coachUnread: 0,

@@ -260,7 +260,7 @@ p { line-height: 1.45; }
   place-items: center;
   overflow: hidden;
 }
-.work-art { min-height: 132px; position: relative; }
+.work-art { position: relative; }
 .work-art img,
 .hero img,
 .hero video,
@@ -271,7 +271,12 @@ p { line-height: 1.45; }
   object-position: center 78%;
   display: block;
 }
-.work-art img { position: absolute; inset: 0; }
+.work-art img {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  object-position: center 55%;
+}
 .move-thumb { width: 56px; height: 64px; border-radius: 12px; flex: none; }
 .thumb { width: 64px; height: 64px; border-radius: 16px; flex: none; }
 .tick {
@@ -314,7 +319,9 @@ p { line-height: 1.45; }
 .work-hit {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 124px 1fr;
+  align-items: stretch;
+  min-height: 124px;
   gap: 0;
   background: none;
   border: 0;
@@ -322,9 +329,17 @@ p { line-height: 1.45; }
   text-align: left;
   padding: 0;
 }
-.work-art { height: 156px; }
-.work-copy { padding: 12px 44px 12px 12px; display: grid; gap: 4px; align-content: center; }
-.work-copy span, .work-copy small { color: var(--muted); font-size: 13px; }
+.work-art { width: 124px; height: 124px; min-height: 124px; }
+.work-copy { padding: 12px 40px 12px 14px; display: grid; gap: 4px; align-content: center; }
+.work-copy b { font-size: 16px; line-height: 1.2; }
+.work-copy span,
+.work-copy small { color: var(--muted); font-size: 13px; }
+.work-copy span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .heart { position: absolute; top: 8px; right: 8px; background: rgba(8, 10, 9, 0.72); }
 .move { justify-content: space-between; }
 .chev { color: var(--faint); font-size: 22px; margin-top: 0; }

@@ -2,32 +2,26 @@ import { useState } from 'react'
 
 const STEPS = [
   {
-    key: 'name',
-    kicker: 'Entrada',
-    title: 'Como te chamo no treino?',
-    text: 'O plano começa no seu ponto, não num exercício de internet.',
-  },
-  {
     key: 'gender',
-    kicker: 'Cadastro',
+    kicker: 'Avaliação',
     title: 'Quem aparece nos treinos?',
     text: 'A biblioteca usa fotos e a demonstração do seu grupo. Dá para trocar depois no perfil.',
   },
   {
     key: 'start',
-    kicker: 'Ponto de partida',
+    kicker: 'Avaliação',
     title: 'De onde você parte?',
     text: 'Seja honesto. Começar baixo demais é fácil de corrigir. Começar alto demais quebra a semana.',
   },
   {
     key: 'days',
-    kicker: 'Frequência',
+    kicker: 'Avaliação',
     title: 'Quantos dias você sustenta?',
     text: 'Folga entre as sessões faz parte do método. Músculo e tendão crescem no intervalo.',
   },
   {
     key: 'pull',
-    kicker: 'Puxada',
+    kicker: 'Avaliação',
     title: 'Como você puxa em casa?',
     text: 'Empurrar no chão é fácil de achar. Puxar é o que falta na maioria dos treinos caseiros.',
   },
@@ -55,21 +49,20 @@ const PULLS = [
   ['chao', 'Só o chão', 'Remada deitado. A porta abre o degrau seguinte.'],
 ]
 
-export default function Onboarding({ onDone }) {
+export default function Onboarding({ name = '', onDone, onClose }) {
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState({ name: '', gender: '', start: '', days: 0, pull: '' })
+  const [answers, setAnswers] = useState({ gender: '', start: '', days: 0, pull: '' })
   const current = STEPS[step]
   const ready =
-    step === 0 ||
-    (step === 1 && answers.gender) ||
-    (step === 2 && answers.start) ||
-    (step === 3 && answers.days) ||
-    (step === 4 && answers.pull)
+    (current.key === 'gender' && answers.gender) ||
+    (current.key === 'start' && answers.start) ||
+    (current.key === 'days' && answers.days) ||
+    (current.key === 'pull' && answers.pull)
 
   function next() {
     if (!ready) return
-    if (step < 4) setStep(step + 1)
-    else onDone(answers)
+    if (step < STEPS.length - 1) setStep(step + 1)
+    else onDone({ ...answers, name })
   }
 
   return (
@@ -84,22 +77,10 @@ export default function Onboarding({ onDone }) {
       <h1>{current.title}</h1>
       <p className="sub">{current.text}</p>
 
-      {step === 0 ? (
-        <label className="stack">
-          <span className="tiny">Nome</span>
-          <input
-            className="field"
-            value={answers.name}
-            placeholder="Pode deixar em branco"
-            onChange={(event) => setAnswers({ ...answers, name: event.target.value })}
-          />
-        </label>
-      ) : null}
-
-      {step === 1 ? <Choices options={GENDERS} value={answers.gender} onPick={(gender) => setAnswers({ ...answers, gender })} /> : null}
-      {step === 2 ? <Choices options={STARTS} value={answers.start} onPick={(start) => setAnswers({ ...answers, start })} /> : null}
-      {step === 3 ? <Choices options={DAYS} value={answers.days} onPick={(days) => setAnswers({ ...answers, days })} /> : null}
-      {step === 4 ? (
+      {current.key === 'gender' ? <Choices options={GENDERS} value={answers.gender} onPick={(gender) => setAnswers({ ...answers, gender })} /> : null}
+      {current.key === 'start' ? <Choices options={STARTS} value={answers.start} onPick={(start) => setAnswers({ ...answers, start })} /> : null}
+      {current.key === 'days' ? <Choices options={DAYS} value={answers.days} onPick={(days) => setAnswers({ ...answers, days })} /> : null}
+      {current.key === 'pull' ? (
         <>
           <Choices options={PULLS} value={answers.pull} onPick={(pull) => setAnswers({ ...answers, pull })} />
           <p className="fine">Porta travada, abrindo para o lado oposto, com um calço no pé. Se a maçaneta mexer, pare.</p>
@@ -107,13 +88,13 @@ export default function Onboarding({ onDone }) {
       ) : null}
 
       <div className="onboard-actions">
-        {step > 0 ? (
-          <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>
+        {step > 0 || onClose ? (
+          <button type="button" className="btn ghost" onClick={() => (step > 0 ? setStep(step - 1) : onClose())}>
             Voltar
           </button>
         ) : null}
         <button type="button" className="btn" disabled={!ready} onClick={next}>
-          {step === 4 ? 'Montar meu plano' : 'Continuar'}
+          {step === STEPS.length - 1 ? 'Montar meu plano' : 'Continuar'}
         </button>
       </div>
     </section>

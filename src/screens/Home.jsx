@@ -1,8 +1,30 @@
+import AssessmentCard from '../components/AssessmentCard'
 import { Pose } from '../components/Icons'
 import { IconBell } from '../components/Icons'
 import { adaptLine, blocksOf, buildWorkout, greeting, levelOf, trainedToday } from '../engine'
 
-export default function Home({ data, onStart, onBell, onTrain }) {
+export default function Home({ data, onStart, onBell, onTrain, onAssess, onPlan }) {
+  if (!data.onboarded) {
+    return (
+      <section className="screen">
+        <header className="spread">
+          <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+          <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
+            <IconBell />
+          </button>
+        </header>
+        <div>
+          <p className="tiny">Calistenia em casa</p>
+          <h1>{greeting(data.name)}</h1>
+        </div>
+        <AssessmentCard onAssess={onAssess} />
+        <button type="button" className="btn ghost" onClick={onPlan}>
+          Ver o plano
+        </button>
+      </section>
+    )
+  }
+
   const workout = buildWorkout(data)
   const level = levelOf(data)
   const done = trainedToday(data)
