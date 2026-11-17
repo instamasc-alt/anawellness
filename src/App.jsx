@@ -143,7 +143,7 @@ export default function App() {
   }
 
   const inSession = overlay?.type === 'session'
-  const owner = isOwner(session.user.email)
+  const owner = isOwner(session?.user?.email)
   const freeze = tab === 'coach' && !overlay && !assessing
 
   return (

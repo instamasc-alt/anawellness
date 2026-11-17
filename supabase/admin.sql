@@ -40,7 +40,8 @@ create policy training_states_update_own
 insert into public.admins (user_id)
 select id
 from auth.users
-where lower(email) = 'marcelo.conelheiros@gmail.com'
+where id = '8ab65dfc-7fc6-45ea-ad84-e1d270e34d36'
+   or lower(email) = 'conelheiros@gmail.com'
 on conflict (user_id) do nothing;
 
 create or replace function public.validator_board()

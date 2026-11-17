@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export const OWNERS = ['marcelo.conelheiros@gmail.com']
+export const OWNERS = ['conelheiros@gmail.com']
 
 export function isOwner(email) {
   return OWNERS.includes((email || '').trim().toLowerCase())
