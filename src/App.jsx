@@ -16,6 +16,14 @@ import Plan from './screens/Plan'
 import Profile from './screens/Profile'
 import Session from './screens/Session'
 
+function Brand() {
+  return (
+    <header className="brand">
+      <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+    </header>
+  )
+}
+
 export default function App() {
   const [session, setSession] = useState(undefined)
   const [hydrated, setHydrated] = useState(false)
@@ -108,11 +116,8 @@ export default function App() {
     return (
       <div className="stage">
         <div className="app">
-          <main className="main">
-            <section className="screen onboard">
-              <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
-            </section>
-          </main>
+          <Brand />
+          <main className="main" />
         </div>
       </div>
     )
@@ -122,6 +127,7 @@ export default function App() {
     return (
       <div className="stage">
         <div className="app">
+          <Brand />
           <main className="main">
             <Account />
           </main>
@@ -134,6 +140,7 @@ export default function App() {
     return (
       <div className="stage">
         <div className="app">
+          <Brand />
           <main className="main">
             <GenderGate onPick={(gender) => setData({ ...data, gender })} />
           </main>
@@ -149,6 +156,7 @@ export default function App() {
   return (
     <div className="stage">
       <div className="app">
+        <Brand />
         <main ref={mainRef} className={freeze ? 'main freeze' : 'main'}>
           {assessing ? (
             <Onboarding

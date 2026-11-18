@@ -81,8 +81,15 @@ p { line-height: 1.45; }
 .chat-screen { min-height: 100%; }
 .main.freeze .chat-screen { height: 100%; min-height: 0; }
 
-.logo { height: 54px; width: auto; display: block; }
-.onboard .logo { height: 78px; }
+.brand {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 16px 18px 6px;
+  background: var(--bg);
+}
+.logo { height: 46px; width: auto; display: block; }
+.end { display: flex; justify-content: flex-end; }
 .spread { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .stack { display: grid; gap: 10px; }
 .tight-stack { gap: 6px; }

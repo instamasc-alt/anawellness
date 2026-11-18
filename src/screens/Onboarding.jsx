@@ -69,8 +69,7 @@ export default function Onboarding({ name = '', onDone, onClose }) {
   if (cover) {
     return (
       <section className="screen onboard">
-        <header className="spread">
-          <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+        <header className="end">
           <button type="button" className="pill" onClick={onClose || (() => setCover(false))}>
             Pular
           </button>
@@ -90,7 +89,6 @@ export default function Onboarding({ name = '', onDone, onClose }) {
 
   return (
     <section className="screen onboard">
-      <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
       <div className="dots" aria-hidden="true">
         {STEPS.map((item, index) => (
           <i key={item.key} className={index <= step ? 'on' : ''} />
@@ -129,7 +127,6 @@ export default function Onboarding({ name = '', onDone, onClose }) {
 export function GenderGate({ onPick }) {
   return (
     <section className="screen onboard">
-      <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
       <p className="tiny">Cadastro</p>
       <h1>Quem aparece nos treinos?</h1>
       <p className="sub">A biblioteca troca as fotos conforme esta escolha. O plano que você já começou continua.</p>

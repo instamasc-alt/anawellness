@@ -34,8 +34,7 @@ export default function Plan({ data, onStart, onBell, onAssess }) {
 
   return (
     <section className="screen">
-      <header className="spread">
-        <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+      <header className="end">
         <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
           <IconBell />
           {data.coachUnread > 0 ? <i className="dot" /> : null}

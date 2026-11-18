@@ -7,8 +7,7 @@ export default function Home({ data, onStart, onBell, onTrain, onAssess, onPlan 
   if (!data.onboarded) {
     return (
       <section className="screen">
-        <header className="spread">
-          <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+        <header className="end">
           <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
             <IconBell />
           </button>
@@ -37,8 +36,7 @@ export default function Home({ data, onStart, onBell, onTrain, onAssess, onPlan 
 
   return (
     <section className="screen">
-      <header className="spread">
-        <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+      <header className="end">
         <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
           <IconBell />
           {data.coachUnread > 0 ? <i className="dot" /> : null}

@@ -62,7 +62,6 @@ export default function Account() {
 
   return (
     <section className="screen onboard">
-      <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
       <p className="tiny">{creating ? 'Conta' : 'Entrada'}</p>
       <h1>{creating ? 'Crie sua conta' : 'Entre na sua conta'}</h1>
       <p className="sub">O plano fica na sua conta, não só neste celular.</p>
