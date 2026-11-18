@@ -147,6 +147,8 @@ export function defaultState() {
     goals: [],
     body: [],
     bodyGoal: null,
+    photo: '',
+    job: '',
   }
 }
 
@@ -202,6 +204,26 @@ export function phaseOf(week) {
   if (week <= 4) return { index: 1, name: 'Volume' }
   if (week <= 6) return { index: 1, name: 'Densidade' }
   return { index: 2, name: 'Padrão' }
+}
+
+export function aimOf(state) {
+  const id = (state.goals || [])[0]
+  return ['forca', 'calistenia', 'tonus', 'energia', 'bem'].includes(id) ? id : ''
+}
+
+export function aimLine(state) {
+  const aim = aimOf(state)
+  if (!aim) return ''
+  if (state.feeling === 'pesado' && aim !== 'bem') {
+    return 'O último treino pesou. O objetivo espera a posição voltar antes de apertar de novo.'
+  }
+  return {
+    forca: 'Objetivo força. O esforço de hoje leva uma série a mais.',
+    calistenia: 'Objetivo calistenia. O esforço guarda um degrau a mais, na faixa baixa.',
+    tonus: 'Objetivo definir o corpo. O core ganha uma série e o descanso encurta.',
+    energia: 'Objetivo disposição. Entra um bloco curto de fôlego.',
+    bem: 'Objetivo bem-estar. A preparação fica mais longa e a soltura permanece.',
+  }[aim]
 }
 
 export function adaptLine(state) {
@@ -325,16 +347,24 @@ function pack(code, level, steps) {
 export function buildWorkout(state, forced) {
   const code = forced || todayCode(state)
   const level = levelOf(state)
-  const volume = volumeFor(state)
+  const aim = aimOf(state)
+  const heavy = state.feeling === 'pesado'
+  let volume = volumeFor(state)
+  if (!heavy && aim === 'forca') volume = { ...volume, sets: Math.min(5, volume.sets + 1) }
+  if (!heavy && aim === 'tonus') volume = { ...volume, rest: Math.max(40, volume.rest - 10) }
   const { steps, add } = createBuilder()
   const push = level.push
   const pull = pullId(state)
-  const wantNext = state.week >= 7 && state.feeling !== 'pesado'
+  const wantNext = (state.week >= 7 || (aim === 'calistenia' && state.week >= 3)) && !heavy
 
   const prepCount = code === 'T' || code === 'H' ? 3 : 5
   PREP.slice(0, prepCount).forEach((id) => {
     add(id, { reps: '5', rest: code === 'M' ? 12 : 10, block: 'Preparação', band: 'low' })
   })
+  if (aim === 'bem' && code !== 'T') {
+    add('stretch-hip', { band: 'low', rest: 8, block: 'Preparação' })
+    add('stretch-back', { band: 'low', rest: 8, block: 'Preparação' })
+  }
 
   if (code === 'A') {
     for (let set = 1; set <= volume.sets; set += 1) {
@@ -357,7 +387,9 @@ export function buildWorkout(state, forced) {
       })
     }
     if (wantNext) addDegrau(add, push, pull, volume)
+    if (!heavy && aim === 'energia') addBreath(add, level)
     addCore(add, level, volume)
+    if (!heavy && aim === 'tonus') addTone(add, level, volume)
     addRecovery(add, volume.band)
   }
 
@@ -390,6 +422,7 @@ export function buildWorkout(state, forced) {
     }
     addMotor(add, state, level)
     addCore(add, level, volume)
+    if (!heavy && aim === 'tonus') addTone(add, level, volume)
     addRecovery(add, volume.band)
   }
 
@@ -411,7 +444,9 @@ export function buildWorkout(state, forced) {
         tag: 'Degrau seguinte',
       })
     }
+    if (!heavy && aim === 'energia') addBreath(add, level)
     addCore(add, level, volume)
+    if (!heavy && aim === 'tonus') addTone(add, level, volume)
     addRecovery(add, volume.band)
   }
 
@@ -436,6 +471,35 @@ export function buildWorkout(state, forced) {
   }
 
   return pack(code, level, steps)
+}
+
+function addTone(add, level, volume) {
+  const id = level.core[0]
+  if (!id) return
+  add(id, {
+    band: volume.band,
+    rest: 20,
+    block: 'Core',
+    checklist: true,
+    set: 2,
+    totalSets: 2,
+    note: 'Série extra do objetivo: definir o corpo.',
+  })
+}
+
+function addBreath(add, level) {
+  for (let round = 1; round <= 3; round += 1) {
+    add(level.motor, {
+      forceTimer: true,
+      seconds: 20,
+      rest: round === 3 ? 20 : 30,
+      block: 'Motor',
+      checklist: true,
+      set: round,
+      totalSets: 3,
+      note: round === 1 ? 'Bloco curto do objetivo: mais disposição.' : '',
+    })
+  }
 }
 
 function addDegrau(add, push, pull, volume) {
@@ -606,14 +670,16 @@ export function completeOnboarding(answers) {
     start: answers.start,
     days: answers.days,
     pull: answers.pull,
+    goals: Array.isArray(answers.goals) ? answers.goals : [],
     level,
     week: 1,
     skill: { push: skillBase, pull: skillBase, legs: skillBase, core: skillBase },
   }
   const workout = buildWorkout(state)
+  const aim = aimLine(state)
   state.coach = [
     coachMsg(
-      `${state.name}, plano montado no nível ${levelOf(state).name}. Semana 1, adaptação. A repetição fica na faixa de baixo até a posição ficar estável.`,
+      `${state.name}, plano montado no nível ${levelOf(state).name}. ${aim || 'Semana 1, adaptação. A repetição fica na faixa de baixo até a posição ficar estável.'}`,
     ),
     coachMsg(`Missão de hoje: ${workout.title}. ${workout.minutes} min. ${workout.why}`),
   ]
@@ -732,6 +798,10 @@ export function replyTo(state, text) {
   const pull = exercises[pullId(state)]
   const squat = exercises[level.squat]
 
+  if (/objetivo|meta/.test(message)) {
+    const line = aimLine(state)
+    return line || 'Marque o objetivo na avaliação ou no perfil. O primeiro escolhido conduz a sessão.'
+  }
   if (/punho|pulso/.test(message)) {
     return 'Punho: abra a mão, espalhe os dedos e deixe o indicador para a frente. Se doer, volte para a flexão na parede ou feche o punho na versão de joelhos. Dor aguda interrompe a série.'
   }

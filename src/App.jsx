@@ -46,19 +46,6 @@ function Brand({ onBell, unread, menu, onMenu, onProfile, onStore }) {
   )
 }
 
-function BodyPreview() {
-  const [data, setData] = useState(() => ({ ...defaultState(), onboarded: true, name: 'atleta', week: 3 }))
-  return (
-    <div className="stage">
-      <div className="app">
-        <main className="main">
-          <Evolution data={data} onChange={(patch) => setData((state) => ({ ...state, ...patch }))} />
-        </main>
-      </div>
-    </div>
-  )
-}
-
 export default function App() {
   const [session, setSession] = useState(undefined)
   const [hydrated, setHydrated] = useState(false)
@@ -149,10 +136,6 @@ export default function App() {
     setTab('home')
   }
 
-  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('ver') === 'corpo') {
-    return <BodyPreview />
-  }
-
   if (session === undefined || (session && !hydrated)) {
     return (
       <div className="stage">
@@ -221,7 +204,14 @@ export default function App() {
               name={data.name}
               onClose={() => setAssessing(false)}
               onDone={(answers) => {
-                setData((current) => ({ ...completeOnboarding(answers), email: current.email }))
+                setData((current) => ({
+                  ...completeOnboarding(answers),
+                  email: current.email,
+                  photo: current.photo,
+                  job: current.job,
+                  body: current.body,
+                  bodyGoal: current.bodyGoal,
+                }))
                 setAssessing(false)
                 setTab('plan')
               }}
@@ -237,6 +227,7 @@ export default function App() {
               onBell={() => setBell(true)}
               onTrain={() => go('train')}
               onPlan={() => go('plan')}
+              onGoals={() => go('profile')}
               onAssess={() => setAssessing(true)}
             />
           ) : null}

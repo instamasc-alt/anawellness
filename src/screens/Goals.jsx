@@ -24,7 +24,7 @@ export default function Goals({ selected, onChange, onClose }) {
       </header>
       <p className="tiny">Objetivos</p>
       <h1>Quais são seus objetivos?</h1>
-      <p className="sub">Pode marcar mais de um. O plano continua o mesmo. O objetivo só nomeia o que você quer ver mudar.</p>
+      <p className="sub">Pode marcar mais de um. O primeiro conduz a sessão. Os outros ficam no início, como direção.</p>
       <div className="stack">
         {GOALS.map(([id, title, text]) => (
           <button key={id} type="button" className={goals.includes(id) ? 'choice on' : 'choice'} onClick={() => toggle(id)}>

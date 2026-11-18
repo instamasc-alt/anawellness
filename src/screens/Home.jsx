@@ -1,8 +1,9 @@
 import AssessmentCard from '../components/AssessmentCard'
 import { Pose } from '../components/Icons'
-import { adaptLine, blocksOf, buildWorkout, greeting, levelOf, trainedToday } from '../engine'
+import { adaptLine, aimLine, blocksOf, buildWorkout, greeting, levelOf, trainedToday } from '../engine'
+import { GOALS } from './Goals'
 
-export default function Home({ data, onStart, onTrain, onAssess, onPlan }) {
+export default function Home({ data, onStart, onTrain, onAssess, onPlan, onGoals }) {
   if (!data.onboarded) {
     return (
       <section className="screen">
@@ -21,6 +22,10 @@ export default function Home({ data, onStart, onTrain, onAssess, onPlan }) {
   const workout = buildWorkout(data)
   const level = levelOf(data)
   const done = trainedToday(data)
+  const aim = aimLine(data)
+  const chosen = GOALS.filter(([id]) => (data.goals || []).includes(id)).sort(
+    (a, b) => data.goals.indexOf(a[0]) - data.goals.indexOf(b[0]),
+  )
   const meters = [
     ['Empurrar', data.skill.push],
     ['Puxar', data.skill.pull],
@@ -33,7 +38,21 @@ export default function Home({ data, onStart, onTrain, onAssess, onPlan }) {
       <div>
         <p className="tiny">Calistenia em casa</p>
         <h1>{greeting(data.name)}</h1>
+        {data.job ? <p className="fine">{data.job}</p> : null}
       </div>
+      {chosen.length ? (
+        <div className="pills">
+          {chosen.map(([id, title], index) => (
+            <span key={id} className="badge">
+              {index === 0 ? `${title} · hoje` : title}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <button type="button" className="btn ghost" onClick={onGoals}>
+          Marcar o objetivo
+        </button>
+      )}
 
       <article className="mission">
         <div className="spread">
@@ -43,6 +62,7 @@ export default function Home({ data, onStart, onTrain, onAssess, onPlan }) {
         <h2>{workout.title}</h2>
         <p className="sub tight">{workout.summary}</p>
         <p className="cue">{adaptLine(data)}</p>
+        {aim ? <p className="fine">{aim}</p> : null}
         <button type="button" className="btn" onClick={() => onStart(workout.id)}>
           {done ? 'Treino extra' : 'Começar missão'}
         </button>

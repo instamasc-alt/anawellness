@@ -1,6 +1,13 @@
 import { useState } from 'react'
+import { GOALS } from './Goals'
 
 const STEPS = [
+  {
+    key: 'goals',
+    kicker: 'Avaliação',
+    title: 'O que você quer ver mudar?',
+    text: 'Pode marcar mais de um. O método continua. O primeiro marcado escolhe onde a sessão aperta.',
+  },
   {
     key: 'gender',
     kicker: 'Avaliação',
@@ -52,9 +59,10 @@ const PULLS = [
 export default function Onboarding({ name = '', onDone, onClose }) {
   const [cover, setCover] = useState(true)
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState({ gender: '', start: '', days: 0, pull: '' })
+  const [answers, setAnswers] = useState({ gender: '', start: '', days: 0, pull: '', goals: [] })
   const current = STEPS[step]
   const ready =
+    (current.key === 'goals' && answers.goals.length > 0) ||
     (current.key === 'gender' && answers.gender) ||
     (current.key === 'start' && answers.start) ||
     (current.key === 'days' && answers.days) ||
@@ -78,8 +86,8 @@ export default function Onboarding({ name = '', onDone, onClose }) {
           <img src="/library/m-push.jpg" alt="" />
         </div>
         <p className="tiny">Avaliação</p>
-        <h1>Quatro perguntas e o treino abre.</h1>
-        <p className="sub">O plano começa em oito semanas e segue depois. A avaliação só marca o seu ponto.</p>
+        <h1>Cinco perguntas e o treino abre.</h1>
+        <p className="sub">A avaliação marca o desejo e o ponto de partida. O plano começa em oito semanas e segue depois.</p>
         <button type="button" className="btn" onClick={() => setCover(false)}>
           Começar avaliação
         </button>
@@ -98,6 +106,29 @@ export default function Onboarding({ name = '', onDone, onClose }) {
       <h1>{current.title}</h1>
       <p className="sub">{current.text}</p>
 
+      {current.key === 'goals' ? (
+        <>
+          <div className="stack">
+            {GOALS.map(([id, title, text]) => (
+              <button
+                key={id}
+                type="button"
+                className={answers.goals.includes(id) ? 'choice on' : 'choice'}
+                onClick={() =>
+                  setAnswers({
+                    ...answers,
+                    goals: answers.goals.includes(id) ? answers.goals.filter((item) => item !== id) : [...answers.goals, id],
+                  })
+                }
+              >
+                <b>{title}</b>
+                <span>{text}</span>
+              </button>
+            ))}
+          </div>
+          <p className="fine">O primeiro marcado conduz o treino. Os outros continuam visíveis no início.</p>
+        </>
+      ) : null}
       {current.key === 'gender' ? <Choices options={GENDERS} value={answers.gender} onPick={(gender) => setAnswers({ ...answers, gender })} /> : null}
       {current.key === 'start' ? <Choices options={STARTS} value={answers.start} onPick={(start) => setAnswers({ ...answers, start })} /> : null}
       {current.key === 'days' ? <Choices options={DAYS} value={answers.days} onPick={(days) => setAnswers({ ...answers, days })} /> : null}

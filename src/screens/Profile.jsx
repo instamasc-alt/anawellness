@@ -10,7 +10,29 @@ export default function Profile({ data, onChange, onReset, onSignOut, onAssess, 
   const [ask, setAsk] = useState(false)
   const [goalsOpen, setGoalsOpen] = useState(false)
   const marks = standards(data)
-  const chosen = GOALS.filter(([id]) => (data.goals || []).includes(id))
+  const chosen = GOALS.filter(([id]) => (data.goals || []).includes(id)).sort(
+    (a, b) => (data.goals || []).indexOf(a[0]) - (data.goals || []).indexOf(b[0]),
+  )
+  const letter = (data.name || 'A').trim().charAt(0).toUpperCase()
+
+  function onPhoto(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !file.type.startsWith('image/')) return
+    const image = new Image()
+    const url = URL.createObjectURL(file)
+    image.onload = () => {
+      const max = 320
+      const scale = Math.min(1, max / Math.max(image.width, image.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(image.width * scale))
+      canvas.height = Math.max(1, Math.round(image.height * scale))
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      onChange({ photo: canvas.toDataURL('image/jpeg', 0.72) })
+    }
+    image.src = url
+  }
 
   if (goalsOpen) {
     return (
@@ -24,8 +46,16 @@ export default function Profile({ data, onChange, onReset, onSignOut, onAssess, 
 
   return (
     <section className="screen">
-      <p className="tiny">Perfil</p>
-      <h1>{data.name}</h1>
+      <div className="who">
+        <label className="avatar">
+          {data.photo ? <img src={data.photo} alt="" /> : <span>{letter}</span>}
+          <input type="file" accept="image/*" aria-label="Foto do perfil" onChange={onPhoto} />
+        </label>
+        <div>
+          <p className="tiny">Perfil</p>
+          <h1>{data.name}</h1>
+        </div>
+      </div>
       <p className="sub tight">
         {data.onboarded ? `Nível ${level.name}. ${level.line}` : 'A avaliação ainda não marcou o seu nível.'}
       </p>
@@ -34,6 +64,15 @@ export default function Profile({ data, onChange, onReset, onSignOut, onAssess, 
       <label className="stack tight-stack">
         <span className="tiny">Nome no treino</span>
         <input className="field" value={data.name} onChange={(event) => onChange({ name: event.target.value })} />
+      </label>
+      <label className="stack tight-stack">
+        <span className="tiny">Profissão</span>
+        <input
+          className="field"
+          value={data.job || ''}
+          placeholder="O que você faz no dia"
+          onChange={(event) => onChange({ job: event.target.value.slice(0, 48) })}
+        />
       </label>
 
       {data.onboarded ? <div className="stats">
@@ -60,9 +99,9 @@ export default function Profile({ data, onChange, onReset, onSignOut, onAssess, 
             <h3>Objetivos</h3>
             {chosen.length ? (
               <div className="pills">
-                {chosen.map(([id, title]) => (
+                {chosen.map(([id, title], index) => (
                   <span key={id} className="badge">
-                    {title}
+                    {index === 0 ? `${title} · hoje` : title}
                   </span>
                 ))}
               </div>
