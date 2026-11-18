@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Achievements from './Achievements'
+import Body from './Body'
 import { achievementsOf, evolutionOf, showDate } from '../engine'
 
 const FEEL = { pesado: 'Pesado', certo: 'No ponto', facil: 'Fácil' }
@@ -9,7 +10,7 @@ const RANGES = [
   ['tudo', 'Tudo'],
 ]
 
-export default function Evolution({ data }) {
+export default function Evolution({ data, onChange }) {
   const [range, setRange] = useState('semana')
   const [board, setBoard] = useState(false)
   const view = evolutionOf(data, range)
@@ -21,7 +22,8 @@ export default function Evolution({ data }) {
     <section className="screen">
       <p className="tiny">Evolução</p>
       <h1>O que já foi feito</h1>
-      <p className="sub">Sessões registradas. A semana no plano não para nas oito.</p>
+      <p className="sub">Sessões, peso e medidas. A semana no plano não para nas oito.</p>
+      <Body data={data} onChange={onChange} />
       <button type="button" className="panel spread" onClick={() => setBoard(true)}>
         <span>
           <b>Conquistas</b>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadAccountState, saveAccountState } from './account'
 import { isOwner } from './admin'
-import TabBar from './components/TabBar'
+import { IconBell, IconMenu } from './components/Icons'
 import { blocksOf, applyResult, buildWorkout, completeOnboarding, defaultState, sessionForExercise, trainedToday } from './engine'
 import { supabase } from './supabase'
 import Admin from './screens/Admin'
@@ -15,12 +15,47 @@ import Onboarding, { GenderGate } from './screens/Onboarding'
 import Plan from './screens/Plan'
 import Profile from './screens/Profile'
 import Session from './screens/Session'
+import Store from './screens/Store'
 
-function Brand() {
+function Brand({ onBell, unread, menu, onMenu, onProfile, onStore }) {
   return (
     <header className="brand">
       <img className="logo" src="/logo-ana-light.png" alt="ana. wellness" />
+      {onMenu ? (
+        <div className="brand-tools">
+          <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
+            <IconBell />
+            {unread > 0 ? <i className="dot" /> : null}
+          </button>
+          <button type="button" className="icon-btn" aria-label="Menu" aria-expanded={menu} onClick={onMenu}>
+            <IconMenu />
+          </button>
+          {menu ? (
+            <div className="menu" role="menu">
+              <button type="button" role="menuitem" onClick={onProfile}>
+                Perfil
+              </button>
+              <button type="button" role="menuitem" onClick={onStore}>
+                Loja
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </header>
+  )
+}
+
+function BodyPreview() {
+  const [data, setData] = useState(() => ({ ...defaultState(), onboarded: true, name: 'atleta', week: 3 }))
+  return (
+    <div className="stage">
+      <div className="app">
+        <main className="main">
+          <Evolution data={data} onChange={(patch) => setData((state) => ({ ...state, ...patch }))} />
+        </main>
+      </div>
+    </div>
   )
 }
 
@@ -32,6 +67,7 @@ export default function App() {
   const [overlay, setOverlay] = useState(null)
   const [pick, setPick] = useState(null)
   const [bell, setBell] = useState(false)
+  const [menu, setMenu] = useState(false)
   const [assessing, setAssessing] = useState(false)
   const mainRef = useRef(null)
   const userId = session?.user?.id
@@ -91,6 +127,7 @@ export default function App() {
     setOverlay(null)
     setPick(null)
     setBell(false)
+    setMenu(false)
     setAssessing(false)
   }
 
@@ -110,6 +147,10 @@ export default function App() {
     setData((state) => applyResult(state, { workout: current.workout, feeling, test, extra: current.extra }))
     setOverlay(null)
     setTab('home')
+  }
+
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('ver') === 'corpo') {
+    return <BodyPreview />
   }
 
   if (session === undefined || (session && !hydrated)) {
@@ -156,7 +197,24 @@ export default function App() {
   return (
     <div className="stage">
       <div className="app">
-        <Brand />
+        <Brand
+          unread={data.coachUnread}
+          menu={menu}
+          onBell={() => {
+            setMenu(false)
+            setBell(true)
+          }}
+          onMenu={() => setMenu((open) => !open)}
+          onProfile={() => go('profile')}
+          onStore={() => {
+            setMenu(false)
+            setBell(false)
+            setPick(null)
+            setAssessing(false)
+            setOverlay({ type: 'store' })
+          }}
+        />
+        {menu ? <button type="button" className="menu-back" aria-label="Fechar menu" onClick={() => setMenu(false)} /> : null}
         <main ref={mainRef} className={freeze ? 'main freeze' : 'main'}>
           {assessing ? (
             <Onboarding
@@ -202,6 +260,7 @@ export default function App() {
               }
             />
           ) : null}
+          {overlay?.type === 'store' ? <Store onBack={() => setOverlay(null)} /> : null}
           {overlay?.type === 'admin' ? <Admin onBack={() => setOverlay(null)} /> : null}
           {overlay?.type === 'exercise' ? (
             <Exercise
@@ -246,7 +305,9 @@ export default function App() {
               }}
             />
           ) : null}
-          {!overlay && !assessing && tab === 'evolution' ? <Evolution data={data} /> : null}
+          {!overlay && !assessing && tab === 'evolution' ? (
+            <Evolution data={data} onChange={(patch) => setData((state) => ({ ...state, ...patch }))} />
+          ) : null}
           {!overlay && !assessing && tab === 'profile' ? (
             <Profile
               data={data}

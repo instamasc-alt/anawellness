@@ -146,6 +146,7 @@ export function defaultState() {
     coachUnread: 0,
     goals: [],
     body: [],
+    bodyGoal: null,
   }
 }
 

@@ -1,5 +1,5 @@
 import AssessmentCard from '../components/AssessmentCard'
-import { IconBell, IconCheck } from '../components/Icons'
+import { IconCheck } from '../components/Icons'
 import { blocksOf, buildWorkout, levelOf } from '../engine'
 import { patternPhoto } from '../media'
 
@@ -27,22 +27,16 @@ const PHASES = [
   },
 ]
 
-export default function Plan({ data, onStart, onBell, onAssess }) {
+export default function Plan({ data, onStart, onAssess }) {
   const locked = !data.onboarded
   const workout = locked ? null : buildWorkout(data)
   const level = levelOf(data)
 
   return (
     <section className="screen">
-      <header className="end">
-        <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
-          <IconBell />
-          {data.coachUnread > 0 ? <i className="dot" /> : null}
-        </button>
-      </header>
       <div>
         <h1>Seu plano</h1>
-        <p className="sub">
+        <p className="sub tight">
           {locked
             ? 'Oito semanas abrem o caminho. Depois a semana segue. A avaliação marca o seu nível.'
             : `Semana ${data.week}. Nível ${level.name}. ${data.days} dias por semana.`}

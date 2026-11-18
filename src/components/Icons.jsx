@@ -57,6 +57,11 @@ export const IconUser = () => (
     <path d="M5.5 19.2c1.4-2.8 3.6-4.2 6.5-4.2s5.1 1.4 6.5 4.2" />
   </Svg>
 )
+export const IconMenu = () => (
+  <Svg>
+    <path d="M5 7h14M5 12h14M5 17h14" />
+  </Svg>
+)
 export const IconBell = () => (
   <Svg>
     <path d="M6.5 16.5h11l-1.1-1.6V10a4.4 4.4 0 0 0-8.8 0v4.9L6.5 16.5Z" />

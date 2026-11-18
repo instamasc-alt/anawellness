@@ -1,17 +1,11 @@
 import AssessmentCard from '../components/AssessmentCard'
 import { Pose } from '../components/Icons'
-import { IconBell } from '../components/Icons'
 import { adaptLine, blocksOf, buildWorkout, greeting, levelOf, trainedToday } from '../engine'
 
-export default function Home({ data, onStart, onBell, onTrain, onAssess, onPlan }) {
+export default function Home({ data, onStart, onTrain, onAssess, onPlan }) {
   if (!data.onboarded) {
     return (
       <section className="screen">
-        <header className="end">
-          <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
-            <IconBell />
-          </button>
-        </header>
         <div>
           <p className="tiny">Calistenia em casa</p>
           <h1>{greeting(data.name)}</h1>
@@ -36,13 +30,6 @@ export default function Home({ data, onStart, onBell, onTrain, onAssess, onPlan 
 
   return (
     <section className="screen">
-      <header className="end">
-        <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
-          <IconBell />
-          {data.coachUnread > 0 ? <i className="dot" /> : null}
-        </button>
-      </header>
-
       <div>
         <p className="tiny">Calistenia em casa</p>
         <h1>{greeting(data.name)}</h1>

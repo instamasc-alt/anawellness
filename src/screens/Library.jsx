@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { PATTERN_ORDER, exercises } from '../data'
 import { FILTERS, levelSeal, listWorkouts, todayCode } from '../engine'
-import { IconBell, IconHeart } from '../components/Icons'
+import { IconHeart } from '../components/Icons'
 import { workoutPhoto, patternPhoto } from '../media'
 import AssessmentCard from '../components/AssessmentCard'
 
-export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleFav, onBell, onAssess }) {
+export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleFav, onAssess }) {
   const [filter, setFilter] = useState('Tudo')
   const [query, setQuery] = useState('')
   const today = todayCode(data)
@@ -41,16 +41,10 @@ export default function Library({ data, onOpenWorkout, onOpenExercise, onToggleF
 
   return (
     <section className="screen">
-      <header className="spread">
-        <div>
-          <p className="tiny">Biblioteca</p>
-          <h1>Treinos</h1>
-        </div>
-        <button type="button" className="icon-btn" aria-label="Recados" onClick={onBell}>
-          <IconBell />
-          {data.coachUnread > 0 ? <i className="dot" /> : null}
-        </button>
-      </header>
+      <div>
+        <p className="tiny">Biblioteca</p>
+        <h1>Treinos</h1>
+      </div>
       <p className="sub tight">
         {data.onboarded
           ? 'Sessões desenhadas para casa. O movimento certo muda com o seu nível.'
