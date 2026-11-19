@@ -16,8 +16,34 @@ function meaningful(state) {
   return !!(state && (state.onboarded || state.sessionsDone || state.history?.length))
 }
 
+const ASIDE = ['body', 'history', 'favorites', 'coach', 'photo', 'job', 'name', 'email', 'updated_at', 'user_id']
+
+function hasJournal(state) {
+  return ['history', 'body', 'coach', 'favorites'].some((key) => Array.isArray(state?.[key]) && state[key].length > 0)
+}
+
 function newer(left, right) {
-  return (left?.savedAt || 0) >= (right?.savedAt || 0) ? left : right
+  const leftAt = left?.savedAt || 0
+  const rightAt = right?.savedAt || 0
+  if (leftAt !== rightAt) return leftAt > rightAt ? left : right
+  return hasJournal(right) && !hasJournal(left) ? right : left
+}
+
+function planMeta(state) {
+  const plan = {}
+  for (const [key, value] of Object.entries(state || {})) {
+    if (!ASIDE.includes(key)) plan[key] = value
+  }
+  return plan
+}
+
+function asState(plan) {
+  if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return null
+  const state = planMeta(plan)
+  for (const key of ['body', 'history', 'favorites', 'coach']) {
+    if (Array.isArray(plan[key])) state[key] = plan[key]
+  }
+  return state
 }
 
 function list(value, fallback) {
@@ -65,11 +91,6 @@ function withTimeout(promise, ms) {
   })
 }
 
-function accountPlan(session) {
-  const plan = session.user.user_metadata?.plan
-  return plan && typeof plan === 'object' ? plan : null
-}
-
 async function pullRemote(session) {
   if (!supabase) return null
   try {
@@ -77,22 +98,23 @@ async function pullRemote(session) {
       supabase.from('training_states').select('state').eq('user_id', session.user.id).maybeSingle(),
       8000,
     )
-    if (!remote?.error && remote?.data?.state) return remote.data.state
+    if (!remote?.error && remote?.data?.state && typeof remote.data.state === 'object') return remote.data.state
   } catch {
-    return accountPlan(session)
+    return null
   }
-  return accountPlan(session)
+  return null
 }
 
 export async function loadAccountState(session) {
   try {
     const remote = await pullRemote(session)
+    const account = asState(session.user.user_metadata?.plan)
     const local = readJson(`${KEY}:${session.user.id}`)
     const owner = localStorage.getItem(OWNER)
     const legacy = !owner || owner === session.user.id ? loadState() : null
-    const found = [remote, local, legacy].filter(meaningful).reduce((best, item) => (best ? newer(best, item) : item), null)
+    const found = [remote, account, local, legacy].filter(meaningful).reduce((best, item) => (best ? newer(best, item) : item), null)
     if (found && found === legacy) localStorage.setItem(OWNER, session.user.id)
-    return stamp(found || remote || local || { name: session.user.user_metadata?.name || '' }, session)
+    return stamp(found || remote || account || local || { name: session.user.user_metadata?.name || '' }, session)
   } catch {
     return stamp({ name: session.user.user_metadata?.name || '' }, session)
   }
@@ -127,7 +149,7 @@ export async function saveAccountState(session, state) {
   if (!failed) return
   try {
     await withTimeout(
-      supabase.auth.updateUser({ data: { name: saved.name, plan: saved } }),
+      supabase.auth.updateUser({ data: { name: saved.name, plan: planMeta(saved) } }),
       8000,
     )
   } catch {
