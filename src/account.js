@@ -46,30 +46,42 @@ function stamp(state, session) {
 }
 
 function withTimeout(promise, ms) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(null), ms)
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const error = new Error('timeout')
+      error.code = 'timeout'
+      reject(error)
+    }, ms)
     promise.then(
       (value) => {
         clearTimeout(timer)
         resolve(value)
       },
-      () => {
+      (error) => {
         clearTimeout(timer)
-        resolve(null)
+        reject(error)
       },
     )
   })
 }
 
-async function pullRemote(session) {
-  if (!supabase) return null
-  const remote = await withTimeout(
-    supabase.from('training_states').select('state').eq('user_id', session.user.id).maybeSingle(),
-    8000,
-  )
-  if (remote && !remote.error && remote.data?.state) return remote.data.state
+function accountPlan(session) {
   const plan = session.user.user_metadata?.plan
   return plan && typeof plan === 'object' ? plan : null
+}
+
+async function pullRemote(session) {
+  if (!supabase) return null
+  try {
+    const remote = await withTimeout(
+      supabase.from('training_states').select('state').eq('user_id', session.user.id).maybeSingle(),
+      8000,
+    )
+    if (!remote?.error && remote?.data?.state) return remote.data.state
+  } catch {
+    return accountPlan(session)
+  }
+  return accountPlan(session)
 }
 
 export async function loadAccountState(session) {
@@ -98,16 +110,28 @@ export async function saveAccountState(session, state) {
   if (!supabase) return
   const saved = { ...payload }
   delete saved.photo
-  const result = await withTimeout(
-    supabase.from('training_states').upsert({
-      user_id: session.user.id,
-      state: saved,
-      updated_at: new Date().toISOString(),
-    }),
-    8000,
-  )
-  if (result && !result.error && session.user.user_metadata?.plan) {
-    supabase.auth.updateUser({ data: { plan: null } }).catch(() => {})
+  let failed = null
+  try {
+    const result = await withTimeout(
+      supabase.from('training_states').upsert({
+        user_id: session.user.id,
+        state: saved,
+        updated_at: new Date().toISOString(),
+      }),
+      8000,
+    )
+    if (result?.error) failed = result.error
+  } catch (error) {
+    failed = error || new Error('save')
+  }
+  if (!failed) return
+  try {
+    await withTimeout(
+      supabase.auth.updateUser({ data: { name: saved.name, plan: saved } }),
+      8000,
+    )
+  } catch {
+    /* a cópia local permanece */
   }
 }
 
