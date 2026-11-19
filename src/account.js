@@ -20,39 +20,70 @@ function newer(left, right) {
   return (left?.savedAt || 0) >= (right?.savedAt || 0) ? left : right
 }
 
+function list(value, fallback) {
+  return Array.isArray(value) ? value : fallback
+}
+
 function stamp(state, session) {
+  const fresh = defaultState()
   const base = {
-    ...defaultState(),
+    ...fresh,
     ...state,
-    skill: { ...defaultState().skill, ...(state?.skill || {}) },
+    skill: { ...fresh.skill, ...(state?.skill || {}) },
   }
   return {
     ...base,
     email: session.user.email || base.email || '',
     name: base.name || session.user.user_metadata?.name || '',
+    goals: list(base.goals, []),
+    body: list(base.body, []),
+    history: list(base.history, []),
+    favorites: list(base.favorites, []),
+    coach: list(base.coach, []),
+    photo: typeof base.photo === 'string' ? base.photo : '',
+    job: typeof base.job === 'string' ? base.job : '',
   }
+}
+
+function withTimeout(promise, ms) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), ms)
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      () => {
+        clearTimeout(timer)
+        resolve(null)
+      },
+    )
+  })
 }
 
 async function pullRemote(session) {
   if (!supabase) return null
-  const { data, error } = await supabase
-    .from('training_states')
-    .select('state')
-    .eq('user_id', session.user.id)
-    .maybeSingle()
-  if (!error && data?.state) return data.state
+  const remote = await withTimeout(
+    supabase.from('training_states').select('state').eq('user_id', session.user.id).maybeSingle(),
+    8000,
+  )
+  if (remote && !remote.error && remote.data?.state) return remote.data.state
   const plan = session.user.user_metadata?.plan
   return plan && typeof plan === 'object' ? plan : null
 }
 
 export async function loadAccountState(session) {
-  const remote = await pullRemote(session)
-  const local = readJson(`${KEY}:${session.user.id}`)
-  const owner = localStorage.getItem(OWNER)
-  const legacy = !owner || owner === session.user.id ? loadState() : null
-  const found = [remote, local, legacy].filter(meaningful).reduce((best, item) => (best ? newer(best, item) : item), null)
-  if (found && found === legacy) localStorage.setItem(OWNER, session.user.id)
-  return stamp(found || remote || local || { name: session.user.user_metadata?.name || '' }, session)
+  try {
+    const remote = await pullRemote(session)
+    const local = readJson(`${KEY}:${session.user.id}`)
+    const owner = localStorage.getItem(OWNER)
+    const legacy = !owner || owner === session.user.id ? loadState() : null
+    const found = [remote, local, legacy].filter(meaningful).reduce((best, item) => (best ? newer(best, item) : item), null)
+    if (found && found === legacy) localStorage.setItem(OWNER, session.user.id)
+    return stamp(found || remote || local || { name: session.user.user_metadata?.name || '' }, session)
+  } catch {
+    return stamp({ name: session.user.user_metadata?.name || '' }, session)
+  }
 }
 
 export async function saveAccountState(session, state) {
@@ -65,13 +96,19 @@ export async function saveAccountState(session, state) {
   }
   saveState(payload)
   if (!supabase) return
-  const { error } = await supabase.from('training_states').upsert({
-    user_id: session.user.id,
-    state: payload,
-    updated_at: new Date().toISOString(),
-  })
-  if (!error) return
-  await supabase.auth.updateUser({ data: { name: payload.name, plan: payload } })
+  const saved = { ...payload }
+  delete saved.photo
+  const result = await withTimeout(
+    supabase.from('training_states').upsert({
+      user_id: session.user.id,
+      state: saved,
+      updated_at: new Date().toISOString(),
+    }),
+    8000,
+  )
+  if (result && !result.error && session.user.user_metadata?.plan) {
+    supabase.auth.updateUser({ data: { plan: null } }).catch(() => {})
+  }
 }
 
 export function authMessage(error) {

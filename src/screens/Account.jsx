@@ -34,30 +34,39 @@ export default function Account() {
       return
     }
     setBusy(true)
-    if (creating) {
-      const { data, error: signError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { data: { name: name.trim() } },
-      })
-      setBusy(false)
-      if (signError) {
-        setError(authMessage(signError))
+    try {
+      if (creating) {
+        const { data, error: signError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { name: name.trim() } },
+        })
+        if (signError) {
+          setError(authMessage(signError))
+          return
+        }
+        if (!data.session) {
+          setNotice('Conta criada. Abra o e-mail de confirmação e depois entre.')
+          setMode('entrar')
+          setPassword('')
+        }
         return
       }
-      if (!data.session) {
-        setNotice('Conta criada. Abra o e-mail de confirmação e depois entre.')
-        setMode('entrar')
-        setPassword('')
+      const result = await Promise.race([
+        supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        }),
+        new Promise((resolve) => setTimeout(() => resolve({ error: { message: 'timeout' } }), 12000)),
+      ])
+      if (result.error) {
+        setError(result.error.message === 'timeout' ? 'A entrada demorou. Tente de novo.' : authMessage(result.error))
       }
-      return
+    } catch {
+      setError('A entrada demorou. Tente de novo.')
+    } finally {
+      setBusy(false)
     }
-    const { error: signError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
-    setBusy(false)
-    if (signError) setError(authMessage(signError))
   }
 
   return (

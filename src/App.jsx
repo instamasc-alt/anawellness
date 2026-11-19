@@ -65,15 +65,21 @@ export default function App() {
       return undefined
     }
     let live = true
+    const giveUp = setTimeout(() => {
+      if (live) setSession((current) => (current === undefined ? null : current))
+    }, 8000)
     supabase.auth.getSession().then(({ data: auth }) => {
       if (live) setSession(auth.session ?? null)
     })
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
-      if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') return
-      setSession(next)
+      if (!live || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') return
+      setTimeout(() => {
+        if (live) setSession(next)
+      }, 0)
     })
     return () => {
       live = false
+      clearTimeout(giveUp)
       sub.subscription.unsubscribe()
     }
   }, [])
@@ -141,7 +147,9 @@ export default function App() {
       <div className="stage">
         <div className="app">
           <Brand />
-          <main className="main" />
+          <main className="main">
+            <p className="fine">Abrindo o plano.</p>
+          </main>
         </div>
       </div>
     )
